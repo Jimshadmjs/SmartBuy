@@ -1,0 +1,266 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #181818;
+    color: #ffffff;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    width: 250px;
+    height: 100%;
+    background-color: #242424;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    padding-top: 20px;
+}
+.sidebar h1 {
+    text-align: center;
+    font-size: 22px;
+    color: #ff3366;
+    margin-bottom: 40px;
+}
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+.sidebar ul li {
+    margin-bottom: 20px;
+}
+.sidebar ul li a {
+    text-decoration: none;
+    color: #ccc;
+    font-size: 18px;
+    padding: 10px 20px;
+    display: block;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+.sidebar ul li a:hover {
+    background-color: #333;
+    color: #ff3366;
+}
+
+/* Main content */
+.main-content {
+    margin-left: 270px;
+    padding: 20px;
+}
+.main-content h2 {
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Products Table */
+.product-table {
+    width: 100%;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    color: #fff;
+    border-collapse: collapse;
+}
+.product-table th,
+.product-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+.product-table th {
+    background-color: #444;
+}
+.product-table td img {
+    width: 50px;
+    height: auto;
+    border-radius: 5px;
+}
+
+.product-table td .colors {
+    display: flex;
+    gap: 10px;
+}
+
+.color-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+.color-black {
+    background-color: #000;
+}
+.color-white {
+    background-color: #fff;
+}
+.color-pink {
+    background-color: #ff9999;
+}
+.color-blue {
+    background-color: #3399ff;
+}
+.color-red {
+    background-color: #ff3333;
+}
+.color-yellow {
+    background-color: #ffcc00;
+}
+.color-purple {
+    background-color: #6600cc;
+}
+.color-orange {
+    background-color: #fb640c;
+}
+.color-green{
+    background-color: #00e31e;
+}
+.color-brown{
+    background-color: rgb(143, 50, 50);
+
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+.action-buttons button {
+    
+    border: none;
+    cursor: pointer;
+}
+.edit-btn {
+    color: #080808;
+}
+.list-btn {
+    padding: 8px 12px;
+    border-radius: 5px;
+}
+.listed {
+    color: white;
+    background-color: red; /* Red for listed */
+}
+.unlisted {
+    color: white;
+    background-color: green; /* Green for unlisted */
+}
+
+/* Add button */
+.add-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #6d60e4;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-bottom: 20px;
+   
+}
+.add-btn:hover {
+    background-color: #3521ea;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.pagination a {
+    padding: 10px 15px;
+    margin: 0 5px;
+    background-color: #444;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.pagination a:hover {
+    background-color: #555;
+}
+
+.pagination a.active {
+    background-color: #6d60e4;
+    pointer-events: none;
+}
+
+.prev-btn, .next-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+}
+
+
+
+
+
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #1f1d1d;
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%; /* Width of the modal */
+    max-width: 500px; /* Maximum width for larger screens */
+}
+
+.close {
+    color: #746b6b;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+input[type="text"], input[type="number"], input[type="file"], textarea {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px;
+    margin: 5px 0 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #6d60e4;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #3521ea;
+}
+
+.crop-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+
+
+
+
+

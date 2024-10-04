@@ -1,0 +1,43 @@
+/* styles.css */
+body {
+    background: linear-gradient(to bottom right, #e0e7ff, #f3f4f6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.otp-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.otp-input {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    text-align: center;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+.resend-timer {
+    color: #ef4444;
+    font-weight: 500;
+}
+.submit-btn {
+    background-color: #ef4444;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.submit-btn:hover {
+    background-color: #dc2626;
+}
+#msg{
+    color: red;
+}

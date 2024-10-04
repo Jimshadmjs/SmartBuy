@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Page</title>
+    <link rel="stylesheet" href="/css/admin/category.css"> 
+    <link rel="stylesheet" href="/css/admin/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <%- include('partials/_sidebar') %>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <%- include('partials/_header') %>
+        <h2>Category</h2>
+        <span style="display: block; text-align: center; color: red;" id="msg"><%= msg %></span>
+
+        <div class="category-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Category Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% category.forEach((category, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= category.name %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <% if (category.isListed) { %>
+                                        <button class="unlist-btn-category" data-category-id="<%= category.id %>">Unlist</button>
+                                    <% } else { %>
+                                        <button class="list-btn-category" data-category-id="<%= category.id %>">List</button>
+                                    <% } %>
+                                    <button class="edit-btn-category" onclick="openEditModal('<%= category.id %>', '<%= category.name %>')">Edit</button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <button id="addCategoryBtn" class="add-category-btn">Add Category</button>
+
+        <!-- Modal for adding category -->
+        <div id="addCategoryModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeAddModal">&times;</span>
+                <h2>Add Category</h2>
+                <form id="addCategoryForm" action="/admin/category" method="POST">
+                    <input type="text" id="addCategoryName" name="name" placeholder="Enter category name" required>
+                    <button type="submit">Add</button>
+                    <div id="addErrorMessage" class="error">Category name cannot be empty or just spaces.</div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal for editing category -->
+        <div id="editCategoryModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeEditModal">&times;</span>
+                <h2>Edit Category</h2>
+                <input type="text" id="editCategoryName" placeholder="Enter category name" required>
+                <input type="hidden" id="editCategoryId"> <!-- Hidden field for category ID -->
+                <button id="saveEditChangesBtn">Save Changes</button> <!-- Removed onclick -->
+                <div id="editErrorMessage" class="error">Category name cannot be empty or just spaces.</div>
+            </div>
+        </div>
+        
+
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <% for(let i = 1; i <= totalPages; i++) { %>
+                <a href="?page=<%= i %>" class="<%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+        </div>
+    </div>
+
+    <script src="/js/admin/category.js"></script>
+</body>
+</html>

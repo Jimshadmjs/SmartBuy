@@ -1,0 +1,51 @@
+html, body {
+    height: 100%; /* Ensure full height */
+    margin: 0;    /* Remove default margin */
+}
+
+.container-fluid {
+    height: 100%; /* Make the container take full height */
+}
+
+.left-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white; /* White background for the login form */
+}
+
+.right-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: linear-gradient(to bottom, #00416A, #E4E5E6); /* Blue gradient background */
+}
+
+.admin-image {
+    max-width: 60%; /* Adjust as needed */
+    height: auto;
+    
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px; /* Set a max width for the card */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Soft shadow */
+}
+
+.eye-button {
+    right: 10px;
+    top: 70%; /* Adjusted to move it lower */
+    transform: translateY(-50%);
+    cursor: pointer; /* Change cursor to pointer */
+    border: none; /* Remove default button border */
+    background: transparent; /* Transparent background */
+    padding: 0; /* Remove padding */
+    font-size: 1.2em; /* Adjust icon size if necessary */
+    color: #6c757d; /* Bootstrap secondary color */
+    outline: none; /* Remove outline */
+}

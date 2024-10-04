@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Page</title>
+    <link rel="stylesheet" href="/css/admin/product.css">
+    <link rel="stylesheet" href="/css/admin/main.css">
+    <!-- Include Cropper.js CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<style>
+     #cropPreviewContainer img {
+            max-width: 100%;
+        }
+        .error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
+</style>
+
+
+</head>
+<body>
+    <!-- Sidebar -->
+    <%- include('partials/_sidebar') %>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- top bar -->
+        <%- include('partials/_header') %>
+        
+        <h2>Products</h2>
+        <button onclick="openModal()" class="add-btn" id="addProductBtn">Add New Product</button>
+        
+        <!-- Product Table -->
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>stock</th>
+                    <th>Available Color</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(function(product) { %>
+
+                <tr>
+                    <td><img src="/<%=product.images[0] %>" alt="<%= product.name %>"></td>
+                    <td><%= product.name %></td>
+                    <td><%= product.categoryID %></td>
+                    <td><%= product.price %></td>
+                    <td><%= product.stock %></td>
+                    <td>
+                        <div class="colors">
+                            <% product.colors.forEach(function(color) { %>
+                            <div class="color-dot color-<%= color.toLowerCase() %>"></div>
+                            <% }); %>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="edit-btn" onclick="editProduct('<%= product._id %>')">Edit</button>
+                            <button class="list-btn <%= product.isListed ? 'listed' : 'unlisted' %>" 
+                                data-id="<%= product._id %>"
+                                onclick="toggleProduct('<%= product._id %>')">
+                          <%= product.isListed ? 'unlist' : 'list' %>
+                        </button>
+
+                        </div>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="?page=<%= currentPage - 1 %>" class="prev-btn">Previous</a>
+            <% } %>
+
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="?page=<%= i %>" class="<%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+
+            <% if (currentPage < totalPages) { %>
+                <a href="?page=<%= currentPage + 1 %>" class="next-btn">Next</a>
+            <% } %>
+        </div>
+    </div>
+
+
+
+
+
+<!-- Add Product Modal -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="addProductForm" action="/admin/add-product" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+            <div>
+                <label for="name">Product Name:</label>
+                <input type="text" id="name" name="name">
+                <span id="nameError" class="error-message"></span>
+            </div>
+            <div>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" placeholder="description"></textarea>
+                <span id="descriptionError" class="error-message"></span>
+            </div>
+            <div>
+                <label for="categoryID">Category:</label>
+                <select id="categoryID" name="categoryID">
+                    <% categories.forEach((category) => { %>
+                        <% if (!category.isListed) { %>
+                            <option value="<%= category._id %>">
+                                <%= category.name %>
+                            </option>
+                        <% } %>
+                    <% }); %>
+                </select>
+                <span id="categoryError" class="error-message"></span>
+            </div>
+            <div>
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" placeholder="stock count">
+                <span id="stockError" class="error-message"></span>
+            </div>
+            <div>
+                <label for="price">Price:</label>
+                <input type="number" step="0.01" id="price" name="price" placeholder="price">
+                <span id="priceError" class="error-message"></span>
+            </div>
+
+            <div>
+                <label for="colors">Colors:</label>
+                <input type="text" id="colors" name="colors" placeholder="Comma-separated colors">
+                <span id="colorsError" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="images">Upload Product Images (Minimum 3):</label>
+                <div id="image-upload-container">
+                    <div class="image-upload">
+                        <input type="file" accept="image/*" class="image-input" onchange="initializeCropper(this, 0)" />
+                        <input type="file" name="croppedImage[]" id="croppedImage-0" accept="image/*" hidden />
+                        <img id="image-preview-0" class="image-preview" style="display: none; max-width: 200px" />
+                        <button class="addmodalbut" type="button" class="crop-btn" onclick="cropImage(0)">Crop</button>
+                        <input type="radio" name="primaryImageIndex" value="0" /> Set as Primary
+                    </div>
+                </div>
+                <button class="addmodalbut" type="button" id="add-image-btn">Add More Images</button>
+                <span id="imageError" class="error-message"></span>
+            </div>
+
+            <div>
+                <button class="addmodalbut" type="submit">Add Product</button>
+            </div>
+        </form>
+    </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <form id="editProductForm" enctype="multipart/form-data">
+            <input type="hidden" id="editProductId" name="id"> <!-- Hidden input for product ID -->
+
+            <!-- Other product fields -->
+            <div>
+                <label for="editName">Product Name:</label>
+                <input type="text" id="editName" name="name" required>
+            </div>
+            <div>
+                <label for="editDescription">Description:</label>
+                <textarea id="editDescription" name="description" required></textarea>
+            </div>
+            <div>
+                <label for="editCategoryID">Category:</label>
+                <select id="editCategoryID" name="categoryID" required>
+                        <% categories.forEach((category)=> { %>
+                            <option id="category" value="<%= category._id %>">
+                                <%= category.name %>
+                            </option>
+                        <% }); %>
+                 
+                </select>
+            </div>
+            <div>
+                <label for="editStock">Stock:</label>
+                <input type="number" id="editStock" name="stock" required>
+            </div>
+            <div>
+                <label for="editPrice">Price:</label>
+                <input type="number" step="0.01" id="editPrice" name="price" required>
+            </div>
+            <div>
+                <label for="editColors">Colors:</label>
+                <input type="text" id="editColors" name="colors" required>
+            </div>
+
+            <!-- Current images section -->
+            <div id="editCurrentImages">
+                <label>Current Images:</label>
+                <!-- Current images and change buttons will be inserted dynamically -->
+            </div>
+
+            <button type="submit">Update Product</button>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+    
+    
+
+    <script src="/js/admin/products.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+
+    <script>
+      function editProduct(productId) {
+    fetch(`/admin/products/${productId}`)
+        .then(response => response.json())
+        .then(product => {
+            console.log(product.categoryID._id);
+            
+            // Populate the form fields with the product data
+            document.getElementById('editProductId').value = product._id;
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editDescription').value = product.description;
+            document.getElementById('editStock').value = product.stock;
+            document.getElementById('editPrice').value = product.price;
+            document.getElementById('editCategoryID').value = product.categoryID._id 
+            document.getElementById('editColors').value = product.colors.join(',');
+            console.log( product.categoryID);
+            
+
+            // Display current images
+            const currentImagesContainer = document.getElementById('editCurrentImages');
+            currentImagesContainer.innerHTML = ''; // Clear previous images
+
+            if (Array.isArray(product.images) && product.images.length > 0) {
+                product.images.forEach((image, index) => {
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.style.display = 'inline-block';
+                    imgWrapper.style.position = 'relative';
+                    imgWrapper.style.margin = '10px';
+
+                    const imgElement = document.createElement('img');
+                    imgElement.src = `../${image}`;
+                    imgElement.alt = `Product Image ${index + 1}`;
+                    imgElement.style.width = '100px';
+                    imgElement.id = `editImageId_${index}`
+
+                    const imageInput = document.createElement('input');
+                    imageInput.type = 'file';
+                    imageInput.accept = 'image/*';
+                    imageInput.style.display = 'block';
+                    imageInput.required=false
+
+                    imageInput.onchange = function(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                imgElement.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+
+                    imgWrapper.appendChild(imgElement);
+                    imgWrapper.appendChild(imageInput);
+                    currentImagesContainer.appendChild(imgWrapper);
+                });
+            }
+
+            // Show the edit modal
+            document.getElementById('editProductModal').style.display = 'block';
+        })
+        .catch(error => console.error('Error fetching product:', error));
+}
+
+
+ 
+
+
+function closeEditModal() {
+    document.getElementById('editProductModal').style.display = 'none';
+}
+
+
+document.getElementById('editProductForm').addEventListener('submit', function(event) {
+
+
+    event.preventDefault(); // Prevent the default form submission
+
+    const editProductId = document.getElementById('editProductId').value.trim();
+    const editName = document.getElementById('editName').value.trim();
+    const editDescription = document.getElementById('editDescription').value.trim();
+    const editCategoryID = document.getElementById('editCategoryID').value.trim();
+    const editStock = document.getElementById('editStock').value.trim();
+    const editPrice = document.getElementById('editPrice').value.trim();
+    const editColors = document.getElementById('editColors').value.trim().split(',');
+
+        // Append the files (images)
+        const imageBase64_1 = document.getElementById('editMainImage') ?? document.getElementById('editImageId_0').src;
+    const imageBase64_2= document.getElementById('editSupportImage1') ?? document.getElementById('editImageId_1').src;
+    const imageBase64_3 = document.getElementById('editSupportImage2') ?? document.getElementById('editImageId_2').src;
+    console.log("yes");
+
+    const images = [imageBase64_1, imageBase64_2, imageBase64_3];
+    
+    // Create a FormData object
+    const formData = new FormData();
+    
+    // Append the regular fields
+    formData.append('name', editName);
+    formData.append('description', editDescription);
+    formData.append('categoryID', editCategoryID);
+    formData.append('stock', editStock);
+    formData.append('price', editPrice);
+    formData.append('colors', JSON.stringify(editColors)); 
+    images.forEach((image, index) => {
+        console.log(`images[${index}]`, image);
+        
+    formData.append(`images[${index}]`, image);  // Send images as array
+});
+
+
+
+  
+
+    // Send a PATCH request to update the product
+    console.log(formData);
+    axios.patch(`/admin/products/${editProductId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+    .then(response => {
+        console.log('Product updated successfully:', response.data);
+        // Close the modal after successful update
+        closeEditModal();
+        location.reload()
+        // Optionally, refresh the product list or update the UI accordingly
+    })
+    .catch(error => {
+        console.error('Error updating product:', error);
+        // Optionally, show an error message to the user
+    });
+});
+    
+
+
+
+
+
+</script>
+        
+</body>
+</html>

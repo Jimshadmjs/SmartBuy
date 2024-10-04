@@ -1,0 +1,110 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #181818;
+    color: #ffffff;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    width: 250px;
+    height: 100%;
+    background-color: #242424;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    padding-top: 20px;
+}
+.sidebar h1 {
+    text-align: center;
+    font-size: 22px;
+    color: #ff3366;
+    margin-bottom: 40px;
+}
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+.sidebar ul li {
+    margin-bottom: 20px;
+}
+.sidebar ul li a {
+    text-decoration: none;
+    color: #ccc;
+    font-size: 18px;
+    padding: 10px 20px;
+    display: block;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+.sidebar ul li a:hover {
+    background-color: #333;
+    color: #ff3366;
+}
+
+/* Main content */
+.main-content {
+    margin-left: 270px;
+    padding: 20px;
+}
+.main-content h2 {
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Users Table */
+.user-table {
+    width: 100%;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    color: #fff;
+    border-collapse: collapse;
+}
+.user-table th, .user-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+.user-table th {
+    background-color: #444;
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+.action-buttons button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+.block-btn {
+    color: #dc3545;
+}
+.unblock-btn {
+    color: #28a745;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+.pagination a {
+    padding: 10px 15px;
+    border: 1px solid #444;
+    color: #fff;
+    text-decoration: none;
+    margin: 0 5px;
+}
+.pagination a:hover {
+    background-color: #444;
+}
+.pagination .active {
+    background-color: #6d60e4;
+   border:none;
+}

@@ -1,0 +1,32 @@
+.bg-light-blue {
+    background-color: #aeb0f4;
+}
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.btn-create-account {
+    background-color: #5e63dc;
+    border-color: #674bf7;
+}
+.btn-create-account:hover {
+    background-color: #ff3748;
+    border-color: #ff3748;
+}
+.error-message {
+    color: red;
+    font-size: 14px;
+    display: none;
+}
+.valid-blink {
+    animation: blink 1s infinite alternate;
+}
+@keyframes blink {
+    from { background-color: #e6ffed; }
+    to { background-color: transparent;}
+}
