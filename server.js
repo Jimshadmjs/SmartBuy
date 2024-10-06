@@ -86,6 +86,7 @@ app.use("/admin",adminRoutes)
 connectDB()
 // Start Server
 app.use((req,res,next)=>{
+  
   res.render('error')
 })
 

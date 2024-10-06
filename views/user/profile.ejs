@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+
+    <!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="images/icons/favicon.png"/>
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/bootstrap/css/bootstrap.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/fonts/iconic/css/material-design-iconic-font.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/fonts/linearicons-v1.0.0/icon-font.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/animate/animate.css">
+    <!--===============================================================================================-->	
+        <link rel="stylesheet" type="text/css" href="/vendor/css-hamburgers/hamburgers.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/animsition/css/animsition.min.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/select2/select2.min.css">
+    <!--===============================================================================================-->	
+        <link rel="stylesheet" type="text/css" href="/vendor/daterangepicker/daterangepicker.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/slick/slick.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/MagnificPopup/magnific-popup.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/vendor/perfect-scrollbar/perfect-scrollbar.css">
+    <!--===============================================================================================-->
+        <link rel="stylesheet" type="text/css" href="/css/util.css">
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+
+
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar_profile {
+            height: 80vh;
+            background-color: #f8f9fa; /* Dark background for sidebar */
+            color: rgb(11, 10, 10); /* White text for all sidebar content */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            padding-top: 30px;
+        }
+        .sidebar_profile h4 {
+            color: rgb(0, 0, 0); /* Make the username white */
+        }
+        .profile-image {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+        }
+       
+        .content {
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .list_profile{
+            background: rgb(224, 224, 224);
+            height: 400px;
+            border-radius: 10px;
+        }
+        .list-group{
+            width: 300px;
+            border-radius: 10px;
+            
+        }
+        .modal-dialog {
+            margin:100px auto; /* Center the modal vertically */
+        }
+        #addressList{
+            width: 360px;
+        }
+        .address-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .address-info {
+        flex: 1;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .address-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* Increase field width */
+    #addressForm .form-control {
+        width: 100%; /* Set the input field to 100% width */
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    /* Button Styles */
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .list-group-item {
+        padding: 20px;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+    }
+        
+    </style>
+    
+
+</head>
+<body>
+
+
+    
+    	<!--Header-->
+	
+	<%- include('partials/_header')%>
+
+    <div class="container-fluid mt-5 ">
+        <div class="row ">
+            <div class="col-md-3 sidebar_profile">
+                <div class="text-center mb-4">
+                    <img src="<%= user.profilePicture || '/images/userP.jpg' %>" alt="Profile Image" class="profile-image">
+                    <h4><%= user.username %></h4>
+                </div>
+                <div class="list_profile d-flex align-items-center justify-content-center">
+                    <div class="list-group">
+                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#details">
+                            <i class="fas fa-user"></i> My Details
+                        </a>
+                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#addresses">
+                            <i class="fas fa-map-marker-alt"></i> Addresses
+                        </a>
+                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#orders">
+                            <i class="fas fa-box"></i> Orders
+                        </a>
+                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#wishlist">
+                            <i class="fas fa-heart"></i> Wishlist
+                        </a>
+                    </div>
+            </div>
+            </div>
+
+
+            <div class="col-md-9 content">
+                <div id="details" class="section hidden">
+                    <h2>My Details</h2>
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" value="<%= user.username %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" value="<%= user.email %>" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+                
+
+                <div id="addresses" class="section hidden">
+                    <h2>Addresses</h2>
+                    <ul class="list-group" id="addressList">
+                        <% if (addresses.length > 0) { %>
+                            <% addresses.forEach(address => { %>
+                                <li class="list-group-item address-item">
+                                    <div class="address-info">
+                                        <strong><%= address.fullName %></strong><br>
+                                        <%= address.address %>, <%= address.city %>, <%= address.pincode %><br>
+                                    </div>
+                                    <div class="address-actions">
+                                        <button id="editAddressModal" class="btn btn-warning btn-sm editAddress" data-id="<%= address._id %>" data-fullname="<%= address.fullName %>" data-phone="<%= address.phone %>" data-address="<%= address.address %>" data-district="<%= address.district %>" data-city="<%= address.city %>" data-state="<%= address.state %>" data-pincode="<%= address.pincode %>" data-country="<%= address.country %>" data-type="<%= address.type %>">Edit</button>
+                                        <button class="btn btn-danger btn-sm deleteAddress" data-id="<%= address._id %>">Delete</button>
+                                    </div>
+                                </li>
+                            <% }) %>
+                        <% } else { %>
+                            <li class="list-group-item">No addresses found.</li>
+                        <% } %>
+                    </ul>
+                
+                    <br>
+                    <!-- Button to Open Modal for Adding Address -->
+                    <button type="button" id="openAddressModal" class="btn btn-primary" data-toggle="modal" data-target="#addressModal">
+                        Add Address
+                    </button>
+                    
+                    <!-- Modal for Adding/Editing Address -->
+                    <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="addressModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addressModalLabel">Add New Address</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addressForm">
+                                        <input type="hidden" id="addressId"> <!-- Hidden input to store address ID for editing -->
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="fullName">Full Name</label>
+                                                <input type="text" class="form-control" id="fullName" required>
+                                                <span class="text-danger" id="fullNameError"></span>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="phone">Phone</label>
+                                                <input type="tel" class="form-control" id="phone" required pattern="[0-9]{10}">
+                                                <span class="text-danger" id="phoneError"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="address">Address</label>
+                                                <input type="text" class="form-control" id="address" required>
+                                                <span class="text-danger" id="addressError"></span>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="district">District</label>
+                                                <input type="text" class="form-control" id="district" required>
+                                                <span class="text-danger" id="districtError"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="city">City</label>
+                                                <input type="text" class="form-control" id="city" required>
+                                                <span class="text-danger" id="cityError"></span>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="state">State</label>
+                                                <input type="text" class="form-control" id="state" required>
+                                                <span class="text-danger" id="stateError"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="pincode">Pincode</label>
+                                                <input type="text" class="form-control" id="pincode" required pattern="[0-9]{6}">
+                                                <span class="text-danger" id="pincodeError"></span>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="country">Country</label>
+                                                <input type="text" class="form-control" id="country" required>
+                                                <span class="text-danger" id="countryError"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="addressType">Address Type</label>
+                                                <select class="form-control" id="addressType" required>
+                                                    <option value="" disabled selected>Select type</option>
+                                                    <option value="work">Work</option>
+                                                    <option value="home">Home</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="submitAddress">Add Address</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                
+
+
+                <div id="orders" class="section hidden">
+                    <h2>Orders</h2>
+                    <ul class="list-group" id="orderList">
+                        <% if (orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <li class="list-group-item">
+                                    Order ID: <%= order._id %> - Total: $<%= order.totalAmount %> - Status: <%= order.orderStatus %>
+                                    <% if (order.orderStatus !== 'Delivered') { %>
+                                        <button class="btn btn-danger btn-sm float-right cancelOrder" data-id="<%= order._id %>">Cancel Order</button>
+                                    <% } %>
+                                </li>
+                            <% }) %>
+                        <% } else { %>
+                            <li class="list-group-item">No orders found.</li>
+                        <% } %>
+                    </ul>
+                </div>
+
+                <div id="wishlist" class="section hidden">
+                    <h2>Wishlist</h2>
+                    <p>No items in your wishlist.</p>
+                    <!-- Wishlist items would be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- footer -->
+
+    <%- include('partials/_footer')%>
+
+<!--===============================================================================================-->	
+<script src="/vendor/jquery/jquery-3.2.1.min.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/animsition/js/animsition.min.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/bootstrap/js/popper.js"></script>
+	<script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/select2/select2.min.js"></script>
+	<script>
+		$(".js-select2").each(function(){
+			$(this).select2({
+				minimumResultsForSearch: 20,
+				dropdownParent: $(this).next('.dropDownSelect2')
+			});
+		})
+	</script>
+<!--===============================================================================================-->
+	<script src="/vendor/daterangepicker/moment.min.js"></script>
+	<script src="/vendor/daterangepicker/daterangepicker.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/slick/slick.min.js"></script>
+	<script src="/js/slick-custom.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/parallax100/parallax100.js"></script>
+	<script>
+        $('.parallax100').parallax100();
+	</script>
+<!--===============================================================================================-->
+	<script src="/vendor/MagnificPopup/jquery.magnific-popup.min.js"></script>
+	<script>
+		$('.gallery-lb').each(function() { // the containers for all your galleries
+			$(this).magnificPopup({
+		        delegate: 'a', // the selector for gallery item
+		        type: 'image',
+		        gallery: {
+		        	enabled:true
+		        },
+		        mainClass: 'mfp-fade'
+		    });
+		});
+	</script>
+<!--===============================================================================================-->
+	<script src="/vendor/isotope/isotope.pkgd.min.js"></script>
+<!--===============================================================================================-->
+	<script src="/vendor/sweetalert/sweetalert.min.js"></script>
+	<script>
+		$('.js-addwish-b2').on('click', function(e){
+			e.preventDefault();
+		});
+
+		$('.js-addwish-b2').each(function(){
+			var nameProduct = $(this).parent().parent().find('.js-name-b2').html();
+			$(this).on('click', function(){
+				swal(nameProduct, "is added to wishlist !", "success");
+
+				$(this).addClass('js-addedwish-b2');
+				$(this).off('click');
+			});
+		});
+
+		$('.js-addwish-detail').each(function(){
+			var nameProduct = $(this).parent().parent().parent().find('.js-name-detail').html();
+
+			$(this).on('click', function(){
+				swal(nameProduct, "is added to wishlist !", "success");
+
+				$(this).addClass('js-addedwish-detail');
+				$(this).off('click');
+			});
+		});
+
+		/*---------------------------------------------*/
+
+		$('.js-addcart-detail').each(function(){
+			var nameProduct = $(this).parent().parent().parent().parent().find('.js-name-detail').html();
+			$(this).on('click', function(){
+				swal(nameProduct, "is added to cart !", "success");
+			});
+		});
+	
+	</script>
+<!--===============================================================================================-->
+	<script src="/vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+	<script>
+		$('.js-pscroll').each(function(){
+			$(this).css('position','relative');
+			$(this).css('overflow','hidden');
+			var ps = new PerfectScrollbar(this, {
+				wheelSpeed: 1,
+				scrollingThreshold: 1000,
+				wheelPropagation: false,
+			});
+
+			$(window).on('resize', function(){
+				ps.update();
+			})
+		});
+	</script>
+
+
+<script src="/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+   $(document).ready(function() {
+    // Check if there's a last section saved in local storage and load it
+    let lastSection = localStorage.getItem('lastSection') || '#details';
+    showSection(lastSection);
+
+    // Event listener for section clicks
+    $('.section-toggle').on('click', function(e) {
+        e.preventDefault();
+        
+        let targetSection = $(this).data('target');
+        
+        // Show the clicked section and save it to local storage
+        showSection(targetSection);
+        localStorage.setItem('lastSection', targetSection);
+    });
+
+    // Function to show the appropriate section and populate fields dynamically
+    function showSection(sectionId) {
+        $('.section').addClass('hidden'); // Hide all sections
+        $(sectionId).removeClass('hidden'); // Show the target section
+        
+        // Dynamically populate fields based on the section ID
+        if (sectionId === '#details') {
+            populateDetails();
+        } else if (sectionId === '#addresses') {
+            populateAddresses();
+        } else if (sectionId === '#orders') {
+            populateOrders();
+        } else if (sectionId === '#wishlist') {
+            populateWishlist();
+        }
+    }
+
+    // Example: Function to populate "My Details" section
+    function populateDetails() {
+        $('#username').val('<%= user.username %>');
+        $('#email').val('<%= user.email %>');
+    }
+
+    // Example: Function to populate "Addresses" section
+    function populateAddresses() {
+        // Logic to dynamically load and display addresses if not already displayed
+        // Assuming you have the address data rendered using EJS
+        // You can load the addresses when this section is clicked.
+    }
+
+    // Example: Function to populate "Orders" section
+    function populateOrders() {
+        // Logic to dynamically load and display orders if not already displayed
+    }
+
+    // Example: Function to populate "Wishlist" section
+    function populateWishlist() {
+        // Logic to dynamically load and display wishlist items if not already displayed
+    }
+});
+
+
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+    const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
+    const addressForm = document.getElementById('addressForm');
+    const openModalBtn = document.getElementById('openAddressModal');
+    const closeModalBtns = document.querySelectorAll('#closeModal, #closeModalFooter');
+    const submitAddressBtn = document.getElementById('submitAddress');
+
+
+
+
+    // Handle delete address
+    addressList.addEventListener('click', function(e) {
+        if (e.target.classList.contains('deleteAddress')) {
+            const addressId = e.target.dataset.id;
+            const confirmation = confirm("Are you sure you want to delete this address?");
+            if (confirmation) {
+                axios.delete(`/daleteAddress/${addressId}`)
+                    .then(response => {
+                        console.log(response.data.message);
+                        // Remove the address from the UI
+                        e.target.closest('li').remove();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting address:', error);
+                        // Optionally show an error message to the user
+                    });
+            }
+        }
+    });
+
+
+
+
+
+
+    // Open modal for adding a new address
+    openModalBtn.addEventListener('click', function () {
+        addressForm.reset();
+        clearValidationMessages();
+        document.getElementById('addressId').value = ''; // Reset address ID for adding
+        document.getElementById('addressModalLabel').innerText = 'Add New Address';
+        submitAddressBtn.innerText = 'Add Address';
+        addressModal.show(); // Use Bootstrap method to show the modal
+    });
+
+    // Close modal
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            addressModal.hide(); // Use Bootstrap method to hide the modal
+        });
+    });
+
+    // Handle Add/Edit Address
+    submitAddressBtn.addEventListener('click', function () {
+        const addressId = document.getElementById('addressId').value;
+        if (addressId) {            
+            editAddress(addressId);
+        } else {
+            addAddress();
+        }
+    });
+
+    // Open modal to edit an address
+    document.getElementById('addressList').addEventListener('click', function(e) {
+        if (e.target.classList.contains('editAddress')) {
+            const button = e.target;
+            document.getElementById('addressId').value = button.dataset.id;
+            document.getElementById('fullName').value = button.dataset.fullname;
+            document.getElementById('phone').value = button.dataset.phone;
+            document.getElementById('address').value = button.dataset.address;
+            document.getElementById('district').value = button.dataset.district;
+            document.getElementById('city').value = button.dataset.city;
+            document.getElementById('state').value = button.dataset.state;
+            document.getElementById('pincode').value = button.dataset.pincode;
+            document.getElementById('country').value = button.dataset.country;
+            document.getElementById('addressType').value = button.dataset.type;
+            
+
+            document.getElementById('addressModalLabel').innerText = 'Edit Address';
+            submitAddressBtn.innerText = 'Update Address';
+            addressModal.show(); 
+        }
+    });
+
+
+    // to add address
+    function addAddress() {
+        const addressData = getAddressData();
+        if (validateForm(addressData)) {
+            console.log("dsuh");
+            
+            axios.post(`/addAddress/<%= user._id %>`, addressData)
+                .then(response => {
+                    console.log('Address added:', response.data);
+                    addressModal.hide(); 
+                    addressForm.reset();
+                    location.reload()
+                })
+                .catch(error => {
+                    console.error('Error adding address:', error);
+                });
+        }
+    }
+
+    // edit address
+
+   async function editAddress(addressId) {
+        const addressData = getAddressData();
+        if (validateForm(addressData)) {
+            try {
+            const response = await axios.patch(`/editAddress/${addressId}`, addressData);
+            if (response.status === 200) {
+                console.log("Address updated successfully");
+                addressModal.hide();
+                addressForm.reset();
+                location.reload()
+            } else {
+                console.error("Failed to update address", response);
+            }
+        } catch (error) {
+            console.error('Error updating address:', error);
+        }
+        }
+    }
+
+    function getAddressData() {
+        return {
+            fullName: document.getElementById('fullName').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            district: document.getElementById('district').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            pincode: document.getElementById('pincode').value.trim(),
+            country: document.getElementById('country').value.trim(),
+            type: document.getElementById('addressType').value
+        };
+    }
+
+    function validateForm(data) {
+        let isValid = true;
+        clearValidationMessages();
+
+        if (!data.fullName) {
+            displayError('fullNameError', 'Full Name cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.phone) {
+            displayError('phoneError', 'Phone cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.address) {
+            displayError('addressError', 'Address cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.district) {
+            displayError('districtError', 'District cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.city) {
+            displayError('cityError', 'City cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.state) {
+            displayError('stateError', 'State cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.pincode) {
+            displayError('pincodeError', 'Pincode cannot be empty or whitespace.');
+            isValid = false;
+        }
+        if (!data.country) {
+            displayError('countryError', 'Country cannot be empty or whitespace.');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function displayError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+        setTimeout(() => {
+            errorElement.innerText = '';
+        }, 3000);
+    }
+
+    function clearValidationMessages() {
+        const errorElements = [
+            'fullNameError', 'phoneError', 'addressError',
+            'districtError', 'cityError', 'stateError',
+            'pincodeError', 'countryError'
+        ];
+        errorElements.forEach(id => {
+            document.getElementById(id).innerText = '';
+        });
+    }
+});
+
+
+
+
+//update user details 
+
+
+document.getElementById('profileForm').addEventListener('submit', function (e) {
+    e.preventDefault(); 
+
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+
+    const updatedDetails = {
+        username: username,
+        email: email
+    };
+
+    // Use Axios to send a PATCH request to update the profile
+    axios.patch('/userDetails/<%= user._id %>', updatedDetails)
+        .then(response => {
+            alert('Profile updated successfully!');
+        })
+        .catch(error => {
+            console.error(error);
+            alert('There was an error updating the profile.');
+        });
+});
+
+
+
+
+
+</script>
+</body>
+</html>

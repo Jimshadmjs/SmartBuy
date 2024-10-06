@@ -8,13 +8,6 @@ const userSchema = new mongoose.Schema({
     password: { type: String , require:true},  
     phone:{type:Number,required:false},
     dob:{type:Date},
-    address: {
-        street: String,
-        city: String,
-        state: String,
-        zipCode: String,
-        country: String,
-    },
     profilePicture: String,
     isBlocked: { type: Boolean, default: false },
 }, { timestamps: true });

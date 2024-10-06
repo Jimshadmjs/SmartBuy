@@ -1,10 +1,15 @@
-// script.js
 let timerElement = document.getElementById("timer");
 const otpInputs = document.querySelectorAll('.otp-input');
 let resendLink = document.getElementById("resendLink");
 let msg = document.getElementById('msg');
 
-let timeLeft = 60;
+// Check if there is a time left in local storage
+let timeLeft = localStorage.getItem('otpTime') ? parseInt(localStorage.getItem('otpTime')) : 60;
+
+// Function to update the timer display
+function updateTimerDisplay() {
+    timerElement.innerText = `${timeLeft}s`;
+}
 
 // Focus on the next input field when one is filled
 otpInputs.forEach((input, index) => {
@@ -33,10 +38,16 @@ let timerInterval = setInterval(() => {
         clearInterval(timerInterval);
         timerElement.innerText = "0s";
         resendLink.style.display = "block"; 
+        localStorage.removeItem('otpTime'); // Clear the time from storage
     } else {
-        timerElement.innerText = `${timeLeft--}s`;
+        timeLeft--;
+        localStorage.setItem('otpTime', timeLeft); // Update the time in storage
+        updateTimerDisplay();
     }
 }, 1000);
+
+// Update the display initially
+updateTimerDisplay();
 
 // Validate OTP form
 function validateForm() {
@@ -50,5 +61,9 @@ function validateForm() {
             return false; 
         }
     }
+
+ 
+    // Clear local storage on successful verification (if this is where you handle it)
+    localStorage.removeItem('otpTime');
     return true; 
 }

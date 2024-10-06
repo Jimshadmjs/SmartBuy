@@ -23,7 +23,7 @@ router.post('/category',adminController.addCategory)
 router.patch('/category/:id',adminController.listCategory)
 router.patch('/category/edit/:id',adminController.editCategory)
 
-router.get('/product',adminController.products)
+router.get('/product',admin.checkSession,adminController.products)
 router.post('/add-product',productImageUpload.array("croppedImage[]",10),adminController.add_product)
 router.get('/products/:id',adminController.edit_product)
 router.patch('/products/:id', productImageUpload.array("images[]",10),adminController.change_file)

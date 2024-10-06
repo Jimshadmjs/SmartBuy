@@ -13,11 +13,6 @@
                     <a href="#" class="flex-c-m trans-04 p-lr-25">
                         Help & FAQs
                     </a>
-
-                    <a href="#" class="flex-c-m trans-04 p-lr-25">
-                        My Account
-                    </a>
-
               
 
                     <!-- Conditional Login/Signup buttons -->
@@ -25,6 +20,9 @@
                         <a href="/login" class="flex-c-m trans-04 p-lr-25">Login</a>
                         <a href="/register" class="flex-c-m trans-04 p-lr-25">Sign Up</a>
                     <% } else { %>
+                        <a href="/profile/<%= user._id %>" class="flex-c-m trans-04 p-lr-25">
+                            My Account
+                        </a>
                         <a href="/logout" class="flex-c-m trans-04 p-lr-25">Logout</a>
 
                     <% } %>
@@ -47,7 +45,7 @@
                         </li>
 
                         <li>
-                            <a href="product.html">Shop</a>
+                            <a href="/shope">Shop</a>
                         </li>
 
                         <li class="label1" data-label1="hot">
