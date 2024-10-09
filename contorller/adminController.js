@@ -2,6 +2,7 @@ const adminModel = require("../models/adminModel")
 const User = require('../models/userModel')
 const categorySchema = require('../models/category')
 const productSchema = require('../models/productModel')
+const orderSchema = require('../models/orderModel')
 const multer = require('multer');
 const bcrypt = require('bcrypt')
 
@@ -89,6 +90,7 @@ const isBlock = async (req,res)=>{
         }
         
         user.isBlocked = isBlocked;
+        req.session.user=false
         await user.save();
         res.status(200).json({success:true, message:`The user status is changed`, isBlocked:user.isBlocked})
 
@@ -196,7 +198,7 @@ const editCategory = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Category has been updated." });
     } catch (error) {
-        console.error(error); // Log the error for debugging
+        console.error(error); 
         res.status(500).send("Internal Server Error");
     }
 };
@@ -311,13 +313,11 @@ const change_file = async (req,res)=>{
     try {
         const productId = req.params.id;
         
-        // Find the product by ID
         const product = await productSchema.findById(productId);
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
-        // Update product fields
         product.name = req.body.name || product.name;
         product.description = req.body.description || product.description;
         product.categoryID = req.body.categoryID || product.categoryID;
@@ -325,21 +325,19 @@ const change_file = async (req,res)=>{
         product.price = req.body.price || product.price;
         product.colors = JSON.parse(req.body.colors) || product.colors;
 
-        // Handle image uploads
         if (req.files.mainImage && req.files.mainImage.length > 0) {
-            product.images[0] = req.files.mainImage[0].filename; // Update main image path
+            product.images[0] = req.files.mainImage[0].filename; 
         }
         if (req.files.supportImage1 && req.files.supportImage1.length > 0) {
-            product.images[1] = req.files.supportImage1[0].filename; // Update supporting image 1 path
+            product.images[1] = req.files.supportImage1[0].filename; 
         }
         if (req.files.supportImage2 && req.files.supportImage2.length > 0) {
-            product.images[2] = req.files.supportImage2[0].filename; // Update supporting image 2 path
+            product.images[2] = req.files.supportImage2[0].filename; 
         }
 
-        // Save the updated product
         await product.save();
 
-        res.status(200).json(product); // Send the updated product back
+        res.status(200).json(product); 
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).send('Internal Server Error');
@@ -353,9 +351,8 @@ const toggle_list = async (req, res) => {
         console.log("jkna");
         
       const productId = req.params.id;
-      const { isListed } = req.body;  // Expecting a boolean value indicating the new state
+      const { isListed } = req.body;  
   
-      // Validate if isListed is provided and is a boolean
       if (typeof isListed !== 'boolean') {
         return res.status(400).json({
           success: false,
@@ -371,7 +368,7 @@ const toggle_list = async (req, res) => {
           .json({ success: false, message: "The product does not exist" });
       }
   
-      product.isListed = isListed;  // Update the listing status
+      product.isListed = isListed; 
       await product.save();
   
       res.status(200).json({
@@ -401,6 +398,46 @@ const logout = (req,res)=>{
 
 
 
+// to render order management
+const order = async (req, res) => {
+    const currentPage = parseInt(req.query.page) || 1;
+    const itemsPerPage = 10; // Adjust as necessary
+
+    try {
+        const totalOrders = await orderSchema.countDocuments();
+        const orders = await orderSchema.find()
+            .populate('userID') // Assuming userId is an object reference to a user model
+            .skip((currentPage - 1) * itemsPerPage)
+            .limit(itemsPerPage);
+
+        const totalPages = Math.ceil(totalOrders / itemsPerPage);
+
+        const currentPageStock = parseInt(req.query.pageStock) || 1;
+        const totalStockItems = await productSchema.countDocuments();
+        const products = await productSchema.find()
+            .skip((currentPageStock - 1) * itemsPerPage)
+            .limit(itemsPerPage);
+
+        const totalPagesStock = Math.ceil(totalStockItems / itemsPerPage);
+
+        res.render('admin/orders', {
+            orders,
+            products,
+            currentPage,
+            totalPages,
+            currentPageStock,
+            totalPagesStock
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+}
+
+
+
+
+
 
 
 module.exports={
@@ -418,5 +455,6 @@ module.exports={
     edit_product,
     change_file,
     toggle_list,
-    logout
+    logout,
+    order
 }

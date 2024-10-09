@@ -15,10 +15,6 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Product', 
                 required: true 
             },
-            sizeID:{
-                type: mongoose.Schema.Types.ObjectId, 
-                required: true 
-            },
             quantity: { 
                 type: Number, 
                 required: true ,
@@ -56,6 +52,6 @@ const orderSchema = new mongoose.Schema({
         type: Date, 
         default: Date.now 
     }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Order', orderSchema);

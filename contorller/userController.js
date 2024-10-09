@@ -5,6 +5,8 @@ const productSchema = require('../models/productModel')
 const categorySchema = require('../models/category')
 const addressSchema = require('../models/addressModel')
 const orderSchema = require('../models/orderModel')
+const CartSchema = require('../models/cartModel')
+const mongoose = require('mongoose');
 require("dotenv").config()
 
 
@@ -154,7 +156,7 @@ const login = async (req,res)=>{
 // render home
 const home = async(req,res)=>{
 
-    const excludedCategories = await categorySchema.find({ isListed: true }).select('_id')
+    const excludedCategories = await categorySchema.find({ isListed: false }).select('_id')
 
     const products = await productSchema.find({isListed:true,categoryID: { $nin: excludedCategories.map(cat => cat._id) }}).limit(12).populate({path: 'categoryID',select: 'name'});
     
@@ -208,7 +210,7 @@ const product_details = async (req,res)=>{
 
       if(req.session.user){
 
-         res.render('user/product_detail',{user:true,product,relatedProducts})
+         res.render('user/product_detail',{user:req.session.user,product,relatedProducts})
 
       }else{
 
@@ -246,7 +248,7 @@ const shop = async (req,res)=>{
 const limit = 12; 
 const skip = (page - 1) * limit;
 
-const excludedCategories = await categorySchema.find({ isListed: true }).select('_id');
+const excludedCategories = await categorySchema.find({ isListed: false }).select('_id');
 
 const products = await productSchema
     .find({ isListed: true, categoryID: { $nin: excludedCategories.map(cat => cat._id) } })
@@ -265,6 +267,7 @@ const formattedProducts = products.map(product => ({
     images: product.images,
     stock: product.stock,
     colors: product.colors,
+    createdAt:product.createdAt,
     category: product.categoryID ? product.categoryID.name : 'Unknown'
 }));
 
@@ -280,7 +283,7 @@ if (req.session.user) {
     });
 } else {
     res.render('user/productsPage', {
-        user: null,
+        user: false,
         categories,
         products: formattedProducts,
         currentPage: page,
@@ -305,7 +308,7 @@ const profile = async (req,res)=>{
             return res.redirect('/');
         }
         const addresses = await addressSchema.find({ user: userId });
-        const orders = await orderSchema.find({ userID: userId });
+        const orders = await orderSchema.find({ userID: userId }).populate('items.productID');
 
         res.status(200).render('user/profile',{user,addresses,orders})
     } catch (err) {
@@ -434,6 +437,526 @@ const updateDetails = async (req,res)=>{
 }
 
 
+// to rener cart page
+const cart = async (req,res)=>{
+
+    const user = req.params.id;
+
+        const pages = 5;
+        const page = parseInt(req.query.page) || 1;
+
+        if (!mongoose.Types.ObjectId.isValid(user)) {
+            console.log('Invalid userId:', user);
+            return res.status(400).send('Invalid user ID');
+        }
+
+        const cartItems = await CartSchema.find({ userId: user })
+            .skip((page - 1) * pages)
+            .limit(pages)
+            .lean();  
+
+        let cartTotal = 0;
+        let filteredCartItems = [];
+
+        for (const cartItem of cartItems) {
+            let validItems = [];
+
+            for (const item of cartItem.items) {
+                const product = await productSchema.findOne({ _id: item.productId, isListed: true }).lean();
+
+                if (product) {
+                    validItems.push(item);  
+                    cartTotal += item.quantity * item.price;  
+                }
+            }
+
+            if (validItems.length > 0) {
+                cartItem.items = validItems;
+                filteredCartItems.push(cartItem);
+            }
+        }
+
+        const totalItems = await CartSchema.countDocuments({ userId: user });
+        const totalPages = Math.ceil(totalItems / pages);
+
+        res.render('user/shopingCart', {
+            user: req.session.user || null,
+            cartItems: filteredCartItems,  
+            cartTotal,
+            currentPage: page,
+            totalPages: totalPages
+});
+
+    
+}
+
+
+
+
+//add to cart
+const addCart = async (req,res)=>{
+    const { productId, name, price, quantity, imageUrl } = req.body;
+    const user = req.params.id;
+    console.log(productId, name, price, quantity, imageUrl);
+    
+    try {
+        const product = await productSchema.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+    
+        let cart = await CartSchema.findOne({ userId: user });
+    
+        if (!cart) {
+            cart = new CartSchema({
+                userId: user,
+                items: []
+            });
+        }
+    
+        const existingItemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+        let currentCartQuantity = 0;
+    
+        if (existingItemIndex > -1) {
+            currentCartQuantity = cart.items[existingItemIndex].quantity;
+        }
+    
+        const totalRequestedQuantity = currentCartQuantity + quantity;
+    
+        // Check if total quantity exceeds stock
+        if (totalRequestedQuantity > product.stock) {
+            return res.status(400).json({
+                message: `Only ${product.stock} units are available in stock. You currently have ${currentCartQuantity} in your cart.`
+            });
+        }
+    
+        if (totalRequestedQuantity > 5) {
+            return res.status(400).json({
+                message: `You can only add up to 5 units of this product. You currently have ${totalRequestedQuantity} in your cart.`
+            });
+        }
+    
+        if (existingItemIndex > -1) {
+            cart.items[existingItemIndex].quantity = totalRequestedQuantity;
+        } else {
+            cart.items.push({
+                productId,
+                productName: name,
+                price,
+                quantity,
+                imageUrl
+            });
+        }
+    
+        await cart.save();
+    
+        res.status(200).json({ message: 'Product added to cart successfully' });
+    
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+    
+    
+}
+
+
+
+//check stock
+const check_stock = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const user = req.session.user
+        const userId = user._id
+        console.log(productId);
+        
+        
+        
+        const product = await productSchema.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        const cart = await CartSchema.findOne({ userId });
+        let userQuantity = 0;
+ 
+        if (cart) {
+            const item = cart.items.find(item => item.productId.toString() === productId);
+            if (item) {
+                userQuantity = item.quantity; // Get current quantity in the user's cart
+            }
+        }
+
+        if (product.stock <= 0) {
+            return res.status(200).json({ inStock: false, userQuantity, availableStock: 0 });
+        } else {
+            return res.status(200).json({ inStock: true, userQuantity, availableStock: product.stock });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+
+
+// remove from cart
+
+const removeCart = async (req, res) => {
+    const user = req.params.id;  // Extract user ID from route parameters
+    const  itemId  = req.body.itemId;   
+    // Extract item ID from request body
+    console.log(itemId);
+    
+    if (!mongoose.Types.ObjectId.isValid(user) || !mongoose.Types.ObjectId.isValid(itemId)) {
+        console.log(user);
+        return res.status(400).send('Invalid user or item ID');
+    }
+    
+    try {
+        // Find the user's cart
+        const cart = await CartSchema.findOne({ userId: user});
+        console.log(cart);
+        
+        if (cart) {
+            // Remove the item from the cart
+            cart.items = cart.items.filter(item => item._id.toString() !== itemId);
+
+            // Save the updated cart
+            await cart.save();
+
+            // Send success response
+            res.status(200).json({ success: true, message: 'Item removed from cart' });
+        } else {
+            res.status(404).send('Cart not found');
+        }
+    } catch (error) {
+        console.error('Error removing item from cart:', error);
+        res.status(500).send('Internal Server Error');
+    }
+
+}
+
+
+// increse and decrease cart items
+const updateCart =  async (req, res) => {
+    const userId = req.params.userId;
+    const { itemId, quantity } = req.body;
+
+    try {
+        const cart = await CartSchema.findOne({ userId: userId });
+
+        if (!cart) {
+            return res.status(404).json({ success: false, message: 'Cart not found' });
+        }
+
+        let itemIndex = cart.items.findIndex(item => item._id.toString() === itemId);
+        
+        if (itemIndex !== -1) {
+            cart.items[itemIndex].quantity = quantity; // Update the quantity
+
+            await cart.save(); 
+
+            return res.json({ success: true, message: 'Item quantity updated' });
+        } else {
+            return res.status(404).json({ success: false, message: 'Item not found in cart' });
+        }
+    } catch (error) {
+        console.error('Error updating cart item quantity:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+
+// checkout page rander
+const checkout = async (req, res) => {
+
+    const userId = req.params.id;
+
+    const addresses = await addressSchema.find({ user: userId });
+
+    const cartItems = await CartSchema.find({ userId }).populate('items.productId');
+    
+    if (!cartItems || cartItems.length === 0) {
+        return res.render('user/checkout', {
+            user: req.session.user,
+            addresses,
+            cartItems: [], 
+            cartSubtotal: 0,
+            discount: 0,
+            deliveryFee: 50, 
+            total: 0
+        });
+    }
+
+    let cartSubtotal = 0;
+    let discount = 0.3; 
+    let deliveryFee = 50; 
+
+
+
+    const populatedCartItems = cartItems.flatMap(cart => {
+        return cart.items.map(item => {
+            const product = item.productId; 
+
+            const totalPriceForItem = item.quantity * product.price;
+            cartSubtotal += totalPriceForItem; 
+
+            return {
+                productName: product.name, 
+                price: product.price,
+                quantity: item.quantity,
+                imageUrl: item.imageUrl, 
+                totalPrice: totalPriceForItem
+            };
+        });
+    });
+
+    // Calculate total price (Subtotal - Discount + Delivery Fee)
+    let total = cartSubtotal - discount + deliveryFee;
+
+    console.log(populatedCartItems);
+
+
+    res.render('user/checkout', {
+        user: req.session.user,
+        addresses, 
+        cartItems: populatedCartItems,
+        cartSubtotal, 
+        discount, 
+        deliveryFee, 
+        total
+    });
+
+}
+
+
+// to place the order
+const placeOrder =  async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { selectedAddress, fullName, address, pincode, phone, paymentMethod } = req.body;
+        console.log(selectedAddress, fullName, address, pincode, phone, paymentMethod);
+        
+        // Fetch the user's cart
+        const cart = await CartSchema.findOne({ userId }).populate('items.productId');
+    
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).send('Your cart is empty');
+        }
+    
+        const outOfStockProducts = [];
+        const orderItems = [];
+    
+        // Check stock for each item and prepare order items
+        for (const item of cart.items) {
+            const product = item.productId;
+    
+            // Check if the product is in stock
+            if (product.stock < item.quantity) {
+                outOfStockProducts.push(product.name); // Collect names of out-of-stock products
+            } else {
+                // Decrease stock if available
+                product.stock -= item.quantity;
+                await product.save(); // Save the updated product stock
+    
+                // Prepare the order items
+                orderItems.push({
+                    productID: product._id,
+                    quantity: item.quantity,
+                    price: item.price
+                });
+            }
+        }
+    
+        // If any products are out of stock, return an error message
+        if (outOfStockProducts.length > 0) {
+            return res.status(400).json({
+                message: `The following products are out of stock: ${outOfStockProducts.join(', ')}`
+            });
+        }
+    
+        // Calculate the total amount
+        const totalAmount = orderItems.reduce((total, item) => {
+            return total + item.quantity * item.price;
+        }, 0);
+        console.log("hurr");
+        
+    
+        // Create a new order
+        const newOrder = new orderSchema({
+            userID: userId,
+            items: orderItems,
+            totalAmount: totalAmount,
+            shippingAddress: {
+                fullname: selectedAddress ? fullName : req.body.fullName,
+                address: selectedAddress ? address : req.body.address,
+                pincode: selectedAddress ? pincode : req.body.pincode,
+                phone: selectedAddress ? phone : req.body.phone
+            },
+            paymentMethod: paymentMethod === 'bankTransfer' ? 'UPI' : 'COD',
+            orderStatus: 'Pending'
+        });
+    
+        await newOrder.save();
+    
+        // Clear the user's cart after successful order
+        await CartSchema.findOneAndDelete({ user: userId });
+    
+        // Redirect to order confirmation page
+        // res.redirect(`/order/confirmation/${newOrder._id}`);
+        res.json({ orderId: newOrder._id });
+    
+    } catch (error) {
+        console.error('Error saving order:', error);
+        res.status(500).send('An error occurred while processing your order');
+    }
+    
+}
+
+
+// order conformation
+
+const conformationOrde = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await orderSchema.findById(orderId).populate('items.productID'); 
+    
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+    
+        const fullAddress = order.shippingAddress.address;
+        const [location, city, state] = fullAddress.split(',').map(part => part.trim());
+    
+        const orderDetails = {
+            orderId: order._id,
+            status: order.orderStatus,
+            product: order.items.map(item => item.productID.name).join(', '),
+            quantity: order.items.map(item => item.quantity).join(', '),
+            totalPrice: order.totalAmount,
+            userId: {
+                name: req.session.user.username,
+                email: req.session.user.email,
+            },
+            shippingAddress: {
+                location,  
+                city,      
+                state,     
+                pincode: order.shippingAddress.pincode, 
+                phone: order.shippingAddress.phone      
+            },
+            paymentMethod: order.paymentMethod,
+            estimatedDelivery: '3-5 business days', 
+        };
+    
+        console.log(orderDetails);
+    
+        // Render the confirmation page
+        res.render('user/orderConfirmation', {
+            user: req.session.user,
+            order: orderDetails,
+        });
+    
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        res.status(500).send('An error occurred while fetching the order');
+    }
+    
+    
+}
+
+
+// to cancel order
+
+const cancelOrder =  async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+       
+        const order = await orderSchema.findByIdAndUpdate(
+            orderId,
+            { orderStatus: 'Cancelled' },
+            { new: true } 
+        );
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json({ message: 'Order cancelled successfully' });
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        res.status(500).json({ message: 'An error occurred while cancelling the order' });
+    }
+}
+
+// order details
+
+const orderDetails = async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+        const order = await orderSchema.findById(orderId).populate('items.productID'); 
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json({
+            orderedDate: order.createdAt, 
+            orderStatus: order.orderStatus,
+            shippingAddress: order.shippingAddress,
+            items: order.items,
+            totalAmount: order.totalAmount,
+        });
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'An error occurred while fetching the order details' });
+    }
+}
+
+
+
+// search 
+
+const search = async (req, res) => {
+    const query = req.query.query;
+
+    try {
+        const results = await productSchema.find({
+            name: { $regex: query, $options: 'i' }
+        });
+        res.json(results);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
+
+// sort filter  not using now meybe helpfull in futer
+const filter =  async (req, res) => {
+    const { sort } = req.query; 
+
+    let products;
+    try {
+        switch (sort) {
+            case 'newness':
+                products = await productSchema.find().sort({ createdAt: -1 });
+                break;
+            default:
+                products = await productSchema.find();
+        }
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
+
 
 
 module.exports = {
@@ -452,5 +975,17 @@ module.exports = {
     addAddress,
     editAddress,
     daleteAddress,
-    updateDetails
+    updateDetails,
+    cart,
+    addCart,
+    check_stock,
+    removeCart,
+    updateCart,
+    checkout,
+    placeOrder,
+    conformationOrde,
+    cancelOrder,
+    orderDetails,
+    search,
+    filter
 }

@@ -7,7 +7,7 @@ const checkSession = (req,res,next)=>{
     }else{
         console.log("error");
         
-        res.redirect("/login")
+        res.redirect("/")
        
     }
 }

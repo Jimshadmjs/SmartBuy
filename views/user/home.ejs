@@ -35,7 +35,7 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 	<link rel="stylesheet" type="text/css" href="css/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
-
+	
     
 
 <!--===============================================================================================-->
@@ -174,42 +174,90 @@
 </section>
 
 
-<div class="container">
-    <div class="row">
-        <% products.forEach(function(product) { %>
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35">
-                <!-- Product Block -->
-                <div class="card h-100">
-                    <!-- Image Section -->
-                    <a href="/product_details/<%= product._id %>">   <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image"> </a>
-                    
-                    <!-- Card Body Section -->
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a href="product-detail.html" class="text-dark"><strong><%= product.name%> <br> </strong><%= product.category %> </a>
-                        </h5>
-                        <p class="card-text">
-                            ₹<%= product.price%>
-                        </p>
-                    </div>
-                    
-                    <!-- Footer for Wishlist and Cart Buttons -->
-                    <div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
-                        <!-- Wishlist Button -->
-                        <button class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-heart"></i> Wishlist
-                        </button>
+	<div class="container">
+		<div class="row">
+			<% products.forEach(function(product) { %>
+				<div class="col-sm-6 col-md-4 col-lg-3 p-b-35">
+					<!-- Product Block -->
+					<div class="card h-100">
+						<!-- Image Section -->
+						<a href="/product_details/<%= product._id %>">   <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image"> </a>
+						
+						<!-- Card Body Section -->
+						<div class="card-body">
+							<h5 class="card-title">
+								<a href="product-detail.html" class="text-dark"><strong><%= product.name%> <br> </strong><%= product.category %> </a>
+							</h5>
+							<p class="card-text">
+								₹<%= product.price%>
+							</p>
+						</div>
+						
+						<!-- Footer for Wishlist and Cart Buttons -->
+					<div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
+						<% if (user) { %>
+							<!-- Wishlist Button -->
+							<button class="btn btn-outline-danger btn-sm">
+								<i class="bi bi-heart"></i> Wishlist
+							</button>
 
-                        <!-- Cart Button -->
-                        <button class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
-        <% }); %>
+							<!-- Cart Button -->
+							<button class="btn btn-outline-primary btn-sm add-to-cart" data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.price %>">
+								<i class="bi bi-cart"></i> Add to Cart
+							</button>
+						<% } else { %>
+							<!-- If user is not logged in, show buttons wrapped in a link -->
+								<a href="/login" class="d-flex align-items-center">
+								<button class="btn btn-outline-danger btn-sm ">
+									<i class="bi bi-heart"></i> Wishlist
+								</button> &nbsp &nbsp &nbsp &nbsp
+								<button class="btn btn-outline-primary btn-sm">
+									<i class="bi bi-cart"></i> Add to Cart
+								</button>
+							</a>
+						<% } %>
+					</div>
+
+					</div>
+				</div>
+			<% }); %>
+		</div>
+	</div>
+
+	<!-- Out of Stock Modal -->
+<div id="outOfStockModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Oops!</h2>
+        <p>This product is out of stock.</p>
+        <button id="okBtn" class="ok-button">OK</button>
     </div>
 </div>
+
+<!-- Limited Stock Modal -->
+<div id="limitedStockModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeLimitedStockModal">&times;</span>
+        <h2>Limited Stock!</h2>
+        <p id="limitedStockMessage">You are about to exceed the limit for this product.</p>
+        <button class="ok-button" id="okLimitedStockBtn">OK</button>
+    </div>
+</div>
+
+
+<!-- success Modal -->
+
+<div id="successModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeSuccessModal">&times;</span>
+        <h2>Success!</h2>
+        <p id="successMessage">Product added to cart successfully!</p>
+        <button id="okSuccessBtn" class="ok-button">OK</button>
+    </div>
+</div>
+
+
+
 
 
 
@@ -217,7 +265,7 @@
 				
 			<!-- Load more -->
 			<div class="flex-c-m flex-w w-full p-t-45">
-				<a href="#" class="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04">
+				<a href="/shope" class="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04">
 					Load More
 				</a>
 			</div>
@@ -334,5 +382,10 @@
 <!--===============================================================================================-->
 	<script src="js/main.js"></script>
 
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script src="/js/home.js"></script>
+	<script>
+		window.userId = '<%= user._id %>'; 
+	</script>
 </body>
 </html>

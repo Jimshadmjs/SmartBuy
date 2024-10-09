@@ -39,14 +39,16 @@
     position: absolute; /* Keep it absolute to the parent */
     border: 1px solid #ccc;
     background-color: rgba(255, 255, 255, 0.9);
+	object-position: center;
     z-index: 1000;
-    width: 300px; /* Default size, can be customized */
-    height: 200px; /* Default size, can be customized */
+    width: 350px; /* Default size, can be customized */
+    height: 300px; /* Default size, can be customized */
     overflow: hidden;
     display: none;
     transition: opacity 0.3s ease-in-out;
     right: 500px; /* Position it to the right */
     top: 250px; /* Adjust as needed to align vertically */
+	background-size: contain;
 }
 
 
@@ -86,7 +88,6 @@
 		<div class="container">
 		  <div class="row">
 			<!-- Product Images -->
-			<!-- Product Images -->
 			<div class="col-md-6 col-lg-7 p-b-30">
 				<div class="p-l-25 p-r-30 p-lr-0-lg">
 				  <div class="wrap-slick3 flex-sb flex-w">
@@ -125,7 +126,7 @@
 				</h4>
 	  
 				<span class="mtext-106 cl2">
-				  ₹<%= product.price.toFixed(2) %>
+				  ₹<%= product.price %>
 				</span>
 	  
 				<p class="stext-102 cl3 p-t-23">
@@ -137,22 +138,19 @@
 				  <p class="stext-102 cl3 p-b-5">
 					<%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
 				  </p>
+
+				   <!-- Show remaining stock quantity -->
+				   <% if (product.stock > 0) { %>
+					<p class="stext-102 cl3 p-b-5">
+						Remaining stock: <%= product.stock %> item<%= product.stock > 1 ? 's' : '' %>
+					</p>
+				<% } %>
 	  
 				  <!-- Only show "Add to Cart" button if product is listed and in stock -->
 				  <% if (product.isListed && product.stock > 0) { %>
 				  <div class="flex-w flex-r-m p-b-10">
 					<div class="size-204 flex-w flex-m respon6-next">
-					  <div class="wrap-num-product flex-w m-r-20 m-tb-10">
-						<div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m">
-						  <i class="fs-16 zmdi zmdi-minus"></i>
-						</div>
-						<input class="mtext-104 cl3 txt-center num-product" type="number" name="num-product" value="1">
-						<div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m">
-						  <i class="fs-16 zmdi zmdi-plus"></i>
-						</div>
-					  </div>
-	  
-					  <button class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
+					  <button class="add-to-cart flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 " data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.price %>">
 						Add to cart
 					  </button>
 					</div>
@@ -402,7 +400,7 @@
 
 
 	<script>
-	
+	window.userId = '<%= user._id%>'
 	$(document).ready(function() {
 		const zoomLevel = 1.8; // Customize this for magnification level
 		const magnifiedView = $('#magnified-view');
@@ -428,7 +426,7 @@
 			const bgPosY = (y * zoomLevel) - (magnifiedView.height() / 2);
 	
 			magnifiedView.css({
-				'background-position': `${bgPosX}px ${bgPosY}px`,
+				'background-position': `${bgPosY}px ${bgPosX}px`,
 			});
 		}).on('mouseleave', function() {
 			magnifiedView.hide();
@@ -436,7 +434,115 @@
 	});
 	
 	</script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script >
 
 
+document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-id');
+
+        // Check product stock before adding to cart
+        checkStock(productId)
+            .then(response => {
+                if (response.inStock) {
+                    const product = {
+                        id: productId,
+                        name: this.getAttribute('data-name'),
+                        price: parseFloat(this.getAttribute('data-price')),
+                        productImage: this.getAttribute('data-image')
+                    };
+
+                    // Check if adding would exceed stock
+                    if (response.userQuantity < response.availableStock) {
+                        addToCart(product)
+                            .then(() => {
+                                // Check for limited stock after adding
+                                if (response.userQuantity + 1 > 5) {
+                                    showLimitedStockAlert(`You already have 5 in your cart.`);
+                                }
+                            });
+                    } else {
+                        showOutOfStockAlert();
+                    }
+                } else {
+                    showOutOfStockAlert();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking stock:', error);
+            });
+    });
+});
+
+// Check product stock function
+function checkStock(productId) {
+    return axios.post(`/cart/check-stock/${productId}`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error checking stock:', error);
+            return { inStock: false, userQuantity: 0, availableStock: 0 };
+        });
+}
+
+// Add to cart function
+
+const number = document.getElementById('btn.value').value
+console.log(number);
+
+function addToCart(product) {
+    const cartItem = {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        imageUrl: product.productImage
+    };
+
+    return axios.post(`/cart/add/${window.userId}`, cartItem)
+        .then(response => {
+            showSuccessAlert('Product added to cart successfully!');
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            showLimitedStockAlert('You already have limited product in your cart.');
+        });
+}
+
+// Show out of stock alert
+function showOutOfStockAlert() {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Out of Stock',
+        text: 'This product is currently unavailable.',
+        confirmButtonText: 'OK'
+    });
+}
+
+// Function to show the limited stock alert
+function showLimitedStockAlert(message) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Limited Stock',
+        text: message,
+        confirmButtonText: 'OK'
+    });
+}
+
+// Function to show the success alert
+function showSuccessAlert(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: message,
+        confirmButtonText: 'OK'
+    });
+}
+
+	
+
+		
+	</script>
 </body>
 </html>

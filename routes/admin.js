@@ -30,6 +30,9 @@ router.patch('/products/:id', productImageUpload.array("images[]",10),adminContr
 router.post('/products/:id',adminController.toggle_list)
 
 
+router.get('/orders',adminController.order)
+
+
 router.get('/logout',adminController.logout)
 
 

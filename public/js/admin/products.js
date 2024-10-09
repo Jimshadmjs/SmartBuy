@@ -16,10 +16,13 @@ function toggleProduct(productId) {
 
   // Determine current listing state
   const isListed = isListedButton.classList.contains('listed');
+  const confirmation = confirm(`Are you sure you want to ${isListed} this product?`);
 
+if(confirmation){
   // Send request to the backend to toggle listing state
   axios.post(`/admin/products/${productId}`, { isListed: !isListed })
     .then(response => {
+
       if (response.data.success) {
         // Update the button text and class based on the new state
         isListedButton.classList.toggle('listed', !isListed);
@@ -34,6 +37,8 @@ function toggleProduct(productId) {
       alert('An error occurred while updating the product status. Please try again.');
    });
 }
+}
+  
 
 
 
