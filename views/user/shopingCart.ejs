@@ -222,30 +222,39 @@
 							</div>
 						</div>
 
-						<div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
-							<div class="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
-								<h4 class="mtext-109 cl2 p-b-30 text-center">Cart Totals</h4> <!-- Centered -->
-								<div class="flex-w flex-t bor12 p-b-13">
-									<div class="size-208">
-										<span class="stext-110 cl2">Subtotal:</span>
+						<% if (cartTotal > 0) { %> <!-- Check if the cartTotal is greater than 0 -->
+							<div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
+								<div class="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
+									<h4 class="mtext-109 cl2 p-b-30 text-center">Cart Totals</h4> <!-- Centered -->
+									<div class="flex-w flex-t bor12 p-b-13">
+										<div class="size-208">
+											<span class="stext-110 cl2">Subtotal:</span>
+										</div>
+										<div class="size-209">
+											<span class="mtext-110 cl2">₹<%= cartTotal %></span>
+										</div>
 									</div>
-									<div class="size-209">
-										<span class="mtext-110 cl2">₹<%= cartTotal %></span>
+									<div class="flex-w flex-t p-t-27 p-b-33">
+										<div class="size-208">
+											<span class="mtext-101 cl2">Total:</span>
+										</div>
+										<div class="size-209 p-t-1">
+											<span class="mtext-110 cl2">₹<%= cartTotal %></span>
+										</div>
 									</div>
+									<a href="/checkout/<%= user._id %>" class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+										Proceed to Checkout
+									</a>
 								</div>
-								<div class="flex-w flex-t p-t-27 p-b-33">
-									<div class="size-208">
-										<span class="mtext-101 cl2">Total:</span>
-									</div>
-									<div class="size-209 p-t-1">
-										<span class="mtext-110 cl2">₹<%= cartTotal %></span>
-									</div>
-								</div>
-								<a href="/checkout/<%= user._id %>" class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
-									Proceed to Checkout
-								</a>
 							</div>
-						</div>
+						<% } else { %> 
+							<div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
+								<div class="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm text-center">
+									<h4 class="mtext-109 cl2 p-b-30">Your cart is empty</h4>
+								</div>
+							</div>
+						<% } %>
+						
 					</div>
 				</div>
 			</form>

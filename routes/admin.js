@@ -31,6 +31,7 @@ router.post('/products/:id',adminController.toggle_list)
 
 
 router.get('/orders',adminController.order)
+router.put('/orders/:orderId/status',adminController.changeStatus)
 
 
 router.get('/logout',adminController.logout)

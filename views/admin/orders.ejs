@@ -41,9 +41,15 @@
                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                         <td>
                             <div class="action-buttons">
-                                <button class="status-btn" onclick="changeOrderStatus('<%= order._id %>')">Change Status</button>
+                                <select class="status-select" onchange="changeOrderStatus('<%= order._id %>', this.value)">
+                                    <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                    <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                    <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                    <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                </select>
                             </div>
-                        </td>
+                        </td> 
                     </tr>
                     <% }); %>
                 </tbody>
@@ -64,4 +70,24 @@
         </div>
     </div>
 </body>
+
+
+<script>
+    function changeOrderStatus(orderId, newStatus) {
+    axios.put(`/admin/orders/${orderId}/status`, { status: newStatus })
+        .then(response => {
+            // Handle success, maybe show a success message or update the UI
+            console.log('Status updated successfully:', response.data);
+            // Optionally reload the page or update the status in the UI
+            location.reload();
+        })
+        .catch(error => {
+            // Handle error
+            console.error('Error updating status:', error);
+            alert('Failed to update status. Please try again.');
+        });
+}
+
+</script>
+
 </html>

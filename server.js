@@ -43,13 +43,11 @@ app.use(passport.session());
 
 // Passport Google OAuth strategy
 passport.use(new GoogleStrategy({
-  clientID: process.env.YOUR_GOOGLE_CLIENT_ID, // From Google Console
-  clientSecret: process.env.YOUR_GOOGLE_CLIENT_SECRET, // From Google Console
-  callbackURL: 'http://localhost:3000/auth/google/callback' // Redirect URI
+  clientID: process.env.YOUR_GOOGLE_CLIENT_ID, 
+  clientSecret: process.env.YOUR_GOOGLE_CLIENT_SECRET, 
+  callbackURL: 'http://localhost:3000/auth/google/callback' 
 }, async (accessToken, refreshToken, profile, done) => {
-  // Find or create user in your database
   let user = await User.findOne({ googleId: profile.id });
-
 
   if (!user) {
     user = new User({
@@ -60,8 +58,9 @@ passport.use(new GoogleStrategy({
     });
     await user.save();
   }
-  done(null, user); // This passes the user to Passport
+  done(null, user); 
 }));
+
 
 // Serialize and deserialize user
 passport.serializeUser((user, done) => {
@@ -84,9 +83,7 @@ app.use("/admin",adminRoutes)
 
 
 connectDB()
-// Start Server
 app.use((req,res,next)=>{
-  
   res.render('error')
 })
 

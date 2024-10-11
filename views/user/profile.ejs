@@ -40,6 +40,12 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Include SweetAlert2 CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+
     
 
 </head>
@@ -90,8 +96,63 @@
                             <input type="email" class="form-control" id="email" value="<%= user.email %>" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Update Profile</button>
+                        <button type="button" class="btn btn-secondary" id="resetPasswordBtn">Reset Password</button>
                     </form>
                 </div>
+                
+                <!-- Reset Password Modal -->
+                <div class="modal" id="resetPasswordModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Reset Password</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="resetPasswordForm">
+                                    <div class="form-group">
+                                        <label for="currentEmail">Current Email</label>
+                                        <input type="email" class="form-control" id="currentEmail" value="<%= user.email %>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="currentPassword">Current Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="currentPassword">
+                                            <button type="button" class="btn btn-outline-secondary" id="toggleCurrentPassword">
+                                                <i class="bi bi-eye-slash" id="currentPasswordIcon"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="currentPasswordNote" style="display: none;">
+                                        <small class="form-text text-muted">This field is auto-filled if you have a Google account.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newPassword">New Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="newPassword" required>
+                                            <button type="button" class="btn btn-outline-secondary" id="toggleNewPassword">
+                                                <i class="bi bi-eye-slash" id="newPasswordIcon"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" id="submitResetPassword">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+
+                
+
+
+                
                 
 
                 <div id="addresses" class="section hidden">
@@ -241,9 +302,12 @@
                                 <td><%= order.orderStatus %></td>
                                 <td>
                                     <button class="btn btn-info btn-sm viewOrder" data-id="<%= order._id %>">View</button>
-                                    <% if (order.orderStatus !== 'Delivered') { %>
-                                    <button class="btn btn-danger btn-sm cancelOrder" data-id="<%= order._id %>">Cancel Order</button>
+                                    <% if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled') { %>
+                                        <button class="btn btn-danger btn-sm cancelOrder" data-id="<%= order._id %>">Cancel Order</button>
+                                    <% } else if (order.orderStatus === 'Delivered') { %>
+                                        <button class="btn btn-danger btn-sm" data-id="<%= order._id %>">Return Order</button>
                                     <% } %>
+                                    
                                 </td>
                             </tr>
                             <% }) %>
@@ -405,9 +469,6 @@
 
 <script src="/js/main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-
-
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
@@ -486,3 +547,8 @@ $(document).ready(function() {
   window.userId = '<%= user._id %>';
 
 </script>
+
+
+
+
+

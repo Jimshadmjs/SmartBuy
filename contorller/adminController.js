@@ -307,12 +307,10 @@ const edit_product = async (req,res)=>{
 
 
 // change the edit product
-const change_file = async (req,res)=>{
-    console.log("kjs");
-    
+const change_file =async (req, res) => {
     try {
         const productId = req.params.id;
-        
+
         const product = await productSchema.findById(productId);
         if (!product) {
             return res.status(404).send('Product not found');
@@ -325,24 +323,23 @@ const change_file = async (req,res)=>{
         product.price = req.body.price || product.price;
         product.colors = JSON.parse(req.body.colors) || product.colors;
 
-        if (req.files.mainImage && req.files.mainImage.length > 0) {
-            product.images[0] = req.files.mainImage[0].filename; 
-        }
-        if (req.files.supportImage1 && req.files.supportImage1.length > 0) {
-            product.images[1] = req.files.supportImage1[0].filename; 
-        }
-        if (req.files.supportImage2 && req.files.supportImage2.length > 0) {
-            product.images[2] = req.files.supportImage2[0].filename; 
+        // Replace images if they are uploaded
+        if (req.files && req.files.length > 0) {
+            req.files.forEach((file, index) => {
+                if (index < product.images.length) {
+                    product.images[index] = file.filename; // Replace with the new image
+                }
+            });
         }
 
         await product.save();
-
-        res.status(200).json(product); 
+        res.status(200).json(product);
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).send('Internal Server Error');
     }
-}   
+};
+  
 
 
 // toggle-list of product
@@ -436,6 +433,21 @@ const order = async (req, res) => {
 
 
 
+// to change order status
+const changeStatus = (req, res) => {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+        return res.status(400).send({ message: 'Invalid status' });
+    }
+
+    orderSchema.findByIdAndUpdate(orderId, { orderStatus: status }, { new: true })
+        .then(updatedOrder => res.send(updatedOrder))
+        .catch(err => res.status(500).send({ message: 'Failed to update order status', error: err }));
+}
+
 
 
 
@@ -456,5 +468,6 @@ module.exports={
     change_file,
     toggle_list,
     logout,
-    order
+    order,
+    changeStatus
 }

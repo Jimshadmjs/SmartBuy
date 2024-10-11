@@ -120,7 +120,7 @@
                 <label for="categoryID">Category:</label>
                 <select id="categoryID" name="categoryID">
                     <% categories.forEach((category) => { %>
-                        <% if (!category.isListed) { %>
+                        <% if (category.isListed) { %>
                             <option value="<%= category._id %>">
                                 <%= category.name %>
                             </option>
@@ -197,11 +197,13 @@
             <div>
                 <label for="editCategoryID">Category:</label>
                 <select id="editCategoryID" name="categoryID" required>
-                        <% categories.forEach((category)=> { %>
-                            <option id="category" value="<%= category._id %>">
+                    <% categories.forEach((category) => { %>
+                        <% if (category.isListed) { %>
+                            <option value="<%= category._id %>">
                                 <%= category.name %>
                             </option>
-                        <% }); %>
+                        <% } %>
+                    <% }); %>
                  
                 </select>
             </div>
@@ -242,145 +244,117 @@
 
 
     <script>
-      function editProduct(productId) {
-    fetch(`/admin/products/${productId}`)
-        .then(response => response.json())
-        .then(product => {
-            console.log(product.categoryID._id);
-            
-            // Populate the form fields with the product data
-            document.getElementById('editProductId').value = product._id;
-            document.getElementById('editName').value = product.name;
-            document.getElementById('editDescription').value = product.description;
-            document.getElementById('editStock').value = product.stock;
-            document.getElementById('editPrice').value = product.price;
-            document.getElementById('editCategoryID').value = product.categoryID._id 
-            document.getElementById('editColors').value = product.colors.join(',');
-            console.log( product.categoryID);
-            
-
-            // Display current images
-            const currentImagesContainer = document.getElementById('editCurrentImages');
-            currentImagesContainer.innerHTML = ''; // Clear previous images
-
-            if (Array.isArray(product.images) && product.images.length > 0) {
-                product.images.forEach((image, index) => {
-                    const imgWrapper = document.createElement('div');
-                    imgWrapper.style.display = 'inline-block';
-                    imgWrapper.style.position = 'relative';
-                    imgWrapper.style.margin = '10px';
-
-                    const imgElement = document.createElement('img');
-                    imgElement.src = `../${image}`;
-                    imgElement.alt = `Product Image ${index + 1}`;
-                    imgElement.style.width = '100px';
-                    imgElement.id = `editImageId_${index}`
-
-                    const imageInput = document.createElement('input');
-                    imageInput.type = 'file';
-                    imageInput.accept = 'image/*';
-                    imageInput.style.display = 'block';
-                    imageInput.required=false
-
-                    imageInput.onchange = function(event) {
-                        const file = event.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                imgElement.src = e.target.result;
+        function editProduct(productId) {
+            fetch(`/admin/products/${productId}`)
+                .then(response => response.json())
+                .then(product => {
+                    // Populate the form fields with the product data
+                    document.getElementById('editProductId').value = product._id;
+                    document.getElementById('editName').value = product.name;
+                    document.getElementById('editDescription').value = product.description;
+                    document.getElementById('editStock').value = product.stock;
+                    document.getElementById('editPrice').value = product.price;
+                    document.getElementById('editCategoryID').value = product.categoryID._id;
+                    document.getElementById('editColors').value = product.colors.join(',');
+    
+                    // Display current images
+                    const currentImagesContainer = document.getElementById('editCurrentImages');
+                    currentImagesContainer.innerHTML = ''; // Clear previous images
+    
+                    if (Array.isArray(product.images) && product.images.length > 0) {
+                        product.images.forEach((image, index) => {
+                            const imgWrapper = document.createElement('div');
+                            imgWrapper.style.display = 'inline-block';
+                            imgWrapper.style.position = 'relative';
+                            imgWrapper.style.margin = '10px';
+    
+                            const imgElement = document.createElement('img');
+                            imgElement.src = `../${image}`;
+                            imgElement.alt = `Product Image ${index + 1}`;
+                            imgElement.style.width = '100px';
+    
+                            const imageInput = document.createElement('input');
+                            imageInput.type = 'file';
+                            imageInput.accept = 'image/*';
+                            imageInput.style.display = 'block';
+                            imageInput.required = false; // Make optional
+    
+                            imageInput.onchange = function(event) {
+                                const file = event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        imgElement.src = e.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
                             };
-                            reader.readAsDataURL(file);
-                        }
-                    };
-
-                    imgWrapper.appendChild(imgElement);
-                    imgWrapper.appendChild(imageInput);
-                    currentImagesContainer.appendChild(imgWrapper);
-                });
-            }
-
-            // Show the edit modal
-            document.getElementById('editProductModal').style.display = 'block';
-        })
-        .catch(error => console.error('Error fetching product:', error));
-}
-
-
- 
-
-
-function closeEditModal() {
-    document.getElementById('editProductModal').style.display = 'none';
-}
-
-
-document.getElementById('editProductForm').addEventListener('submit', function(event) {
-
-
-    event.preventDefault(); // Prevent the default form submission
-
-    const editProductId = document.getElementById('editProductId').value.trim();
-    const editName = document.getElementById('editName').value.trim();
-    const editDescription = document.getElementById('editDescription').value.trim();
-    const editCategoryID = document.getElementById('editCategoryID').value.trim();
-    const editStock = document.getElementById('editStock').value.trim();
-    const editPrice = document.getElementById('editPrice').value.trim();
-    const editColors = document.getElementById('editColors').value.trim().split(',');
-
-        // Append the files (images)
-        const imageBase64_1 = document.getElementById('editMainImage') ?? document.getElementById('editImageId_0').src;
-    const imageBase64_2= document.getElementById('editSupportImage1') ?? document.getElementById('editImageId_1').src;
-    const imageBase64_3 = document.getElementById('editSupportImage2') ?? document.getElementById('editImageId_2').src;
-    console.log("yes");
-
-    const images = [imageBase64_1, imageBase64_2, imageBase64_3];
     
-    // Create a FormData object
-    const formData = new FormData();
+                            imgWrapper.appendChild(imgElement);
+                            imgWrapper.appendChild(imageInput);
+                            currentImagesContainer.appendChild(imgWrapper);
+                        });
+                    }
     
-    // Append the regular fields
-    formData.append('name', editName);
-    formData.append('description', editDescription);
-    formData.append('categoryID', editCategoryID);
-    formData.append('stock', editStock);
-    formData.append('price', editPrice);
-    formData.append('colors', JSON.stringify(editColors)); 
-    images.forEach((image, index) => {
-        console.log(`images[${index}]`, image);
-        
-    formData.append(`images[${index}]`, image);  // Send images as array
-});
-
-
-
-  
-
-    // Send a PATCH request to update the product
-    console.log(formData);
-    axios.patch(`/admin/products/${editProductId}`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
+                    // Show the edit modal
+                    document.getElementById('editProductModal').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching product:', error));
         }
-    })
-    .then(response => {
-        console.log('Product updated successfully:', response.data);
-        // Close the modal after successful update
-        closeEditModal();
-        location.reload()
-        // Optionally, refresh the product list or update the UI accordingly
-    })
-    .catch(error => {
-        console.error('Error updating product:', error);
-        // Optionally, show an error message to the user
-    });
-});
     
+        function closeEditModal() {
+            document.getElementById('editProductModal').style.display = 'none';
+        }
+    
+        document.getElementById('editProductForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+    
+            const editProductId = document.getElementById('editProductId').value.trim();
+            const editName = document.getElementById('editName').value.trim();
+            const editDescription = document.getElementById('editDescription').value.trim();
+            const editCategoryID = document.getElementById('editCategoryID').value.trim();
+            const editStock = document.getElementById('editStock').value.trim();
+            const editPrice = document.getElementById('editPrice').value.trim();
+            const editColors = document.getElementById('editColors').value.trim().split(',');
+    
+            // Gather images from inputs
+            const imageInputs = document.querySelectorAll('#editCurrentImages input[type="file"]');
+            const formData = new FormData();
+    
+            // Append the regular fields
+            formData.append('name', editName);
+            formData.append('description', editDescription);
+            formData.append('categoryID', editCategoryID);
+            formData.append('stock', editStock);
+            formData.append('price', editPrice);
+            formData.append('colors', JSON.stringify(editColors)); 
+    
+            // Append images with specific naming
+            imageInputs.forEach(input => {
+                if (input.files[0]) {
+                    formData.append('images[]', input.files[0]); // Use "images[]"
+                }
+            });
 
-
-
-
-
-</script>
+    
+            // Send a PATCH request to update the product
+            axios.patch(`/admin/products/${editProductId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            .then(response => {
+                console.log('Product updated successfully:', response.data);
+                closeEditModal();
+                location.reload(); // Optionally refresh the page or product list
+            })
+            .catch(error => {
+                console.error('Error updating product:', error);
+            });
+        });
+    </script>
+    
+        
         
 </body>
 </html>

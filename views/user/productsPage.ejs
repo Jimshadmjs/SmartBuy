@@ -240,7 +240,7 @@
 
     <div class="row" id="product-container">
         <% products.forEach(function(product) { %>
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35" data-created-at="<%= product.createdAt %>">
+            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35" data-category="<%= product.category %>" data-created-at="<%= product.createdAt %>">
                 <div class="card h-100">
                     <a href="/product_details/<%= product._id %>">
                         <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image">
@@ -281,6 +281,7 @@
             </div>
         <% }); %>
     </div>
+    
     
 </div>
 
@@ -465,3 +466,34 @@
 </script>
 </body>
 </html>
+<script>
+    document.querySelectorAll('.filter-tope-group button').forEach(button => {
+        button.addEventListener('click', function() {
+            const filterValue = this.getAttribute('data-filter');
+            console.log(`Filtering by: ${filterValue}`);
+            // Remove active class from all buttons
+            document.querySelectorAll('.filter-tope-group button').forEach(btn => {
+                btn.classList.remove('how-active1');
+            });
+
+            // Add active class to the clicked button
+            this.classList.add('how-active1');
+
+            // Filter products
+            const products = document.querySelectorAll('#product-container .col-sm-6');
+
+            products.forEach(product => {
+                
+                const productCategory = product.getAttribute('data-category');
+                console.log(productCategory); 
+
+                if (filterValue === '*' || productCategory === filterValue) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+

@@ -1,16 +1,4 @@
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+                
         // order----------------------------------------------------------------------------------------------------
         
         
@@ -163,16 +151,16 @@ document.addEventListener('DOMContentLoaded', function () {
     openModalBtn.addEventListener('click', function () {
         addressForm.reset();
         clearValidationMessages();
-        document.getElementById('addressId').value = ''; // Reset address ID for adding
+        document.getElementById('addressId').value = ''; 
         document.getElementById('addressModalLabel').innerText = 'Add New Address';
         submitAddressBtn.innerText = 'Add Address';
-        addressModal.show(); // Use Bootstrap method to show the modal
+        addressModal.show(); 
     });
 
     // Close modal
     closeModalBtns.forEach(btn => {
         btn.addEventListener('click', function () {
-            addressModal.hide(); // Use Bootstrap method to hide the modal
+            addressModal.hide(); 
         });
     });
 
@@ -350,3 +338,175 @@ document.getElementById('profileForm').addEventListener('submit', function (e) {
             alert('There was an error updating the profile.');
         });
 });
+
+
+
+
+
+
+
+
+// to reset password
+
+
+document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+    const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+    modal.show();
+    resetValidationMessages();
+});
+
+document.getElementById('submitResetPassword').addEventListener('click', function() {
+    validateAndSubmit();
+});
+
+document.getElementById('currentEmail').addEventListener('input', validateEmail);
+document.getElementById('currentPassword').addEventListener('input', validateCurrentPassword);
+document.getElementById('newPassword').addEventListener('input', validateNewPassword);
+
+document.getElementById('toggleCurrentPassword').addEventListener('click', function() {
+    togglePasswordVisibility('currentPassword', 'currentPasswordIcon');
+});
+
+document.getElementById('toggleNewPassword').addEventListener('click', function() {
+    togglePasswordVisibility('newPassword', 'newPasswordIcon');
+});
+
+function validateAndSubmit() {
+    resetValidationMessages();
+
+    const currentEmail = document.getElementById('currentEmail').value;
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    let valid = true;
+
+    if (!currentEmail) {
+        showError('currentEmail', 'This field is required');
+        valid = false;
+    }
+
+    if (!currentPassword) {
+        showError('currentPassword', 'This field is required');
+        valid = false;
+    }
+
+    if (!newPassword) {
+        showError('newPassword', 'This field is required');
+        valid = false;
+    } else {
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordPattern.test(newPassword)) {
+            showError('newPassword', 'Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.');
+            valid = false;
+        }
+    }
+
+    if (!valid) {
+        return;
+    }
+
+    const data = {
+        email: currentEmail,
+        currentPassword: currentPassword,
+        newPassword: newPassword
+    };
+
+    axios.patch(`/resetPassword/${userId}`, data)
+    .then(response => {
+        Swal.fire({
+            title: 'Success!',
+            text: 'Password updated successfully!',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            location.reload();
+        });
+    })
+    .catch(error => {
+        if (error.response) {
+            
+            Swal.fire({
+                title: 'Error!',
+                text: error.response.data.message || 'Failed to update password. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        } else {
+           
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+}
+
+
+function validateEmail() {
+    const emailField = document.getElementById('currentEmail');
+    if (!emailField.value) {
+        showError('currentEmail', 'This field is required');
+    } else {
+        clearError('currentEmail'); 
+    }
+}
+
+function validateCurrentPassword() {
+    const passwordField = document.getElementById('currentPassword');
+    if (!passwordField.value) {
+        showError('currentPassword', 'This field is required');
+    } else {
+        clearError('currentPassword');
+    }
+}
+
+function validateNewPassword() {
+    const passwordField = document.getElementById('newPassword');
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!passwordField.value) {
+        showError('newPassword', 'This field is required');
+    } else if (!passwordPattern.test(passwordField.value)) {
+        showError('newPassword', 'Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.');
+    } else {
+        clearError('newPassword');
+    }
+}
+
+function togglePasswordVisibility(fieldId, iconId) {
+    const passwordField = document.getElementById(fieldId);
+    const icon = document.getElementById(iconId);
+    const isPasswordVisible = passwordField.type === 'text';
+    
+    passwordField.type = isPasswordVisible ? 'password' : 'text';
+    icon.classList.toggle('bi-eye', !isPasswordVisible);
+    icon.classList.toggle('bi-eye-slash', isPasswordVisible);
+}
+
+function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const existingError = field.parentNode.querySelector('.form-text.text-danger');
+    
+    if (!existingError) {
+        const errorMessage = document.createElement('small');
+        errorMessage.className = 'form-text text-danger';
+        errorMessage.innerText = message;
+        field.parentNode.appendChild(errorMessage);
+    }
+}
+
+function clearError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const existingError = field.parentNode.querySelector('.form-text.text-danger');
+    
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+function resetValidationMessages() {
+    const errorMessages = document.querySelectorAll('.form-text.text-danger');
+    errorMessages.forEach(msg => msg.remove());
+}

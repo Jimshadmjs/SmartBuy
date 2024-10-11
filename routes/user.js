@@ -53,5 +53,16 @@ router.get('/products',userController.filter)
 
 
 
+// forget password
+router.get('/forgotmail',userController.forgotmail)
+router.post('/forgot-otp',userController.forgotEmailVerify)
+router.post("/forgetverifyotp",userController.forgotPassOtp)
+router.get("/forgetOtp",userController.forgotOtpRender)
+router.get("/forgotresendotp",userController.forgotResendOTP)
+router.post("/update-password",userController.newpassVerify)
+
+//resetPassword
+router.patch('/resetPassword/:userId',userController.resetPassword)
+
 
 module.exports = router;

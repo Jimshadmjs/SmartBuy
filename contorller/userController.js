@@ -41,7 +41,8 @@ const registered = async (req,res)=>{
             text: `Your OTP is ${otp} it will expire in a minute`,
           };
           await transporter.sendMail(mailOptions);
-
+          console.log(otp);
+          
           req.session.email = req.body.email
           req.session.otp = otp;
           req.session.signupData = req.body;
@@ -55,12 +56,16 @@ const registered = async (req,res)=>{
 
 }
 
+
+
 // to render otp page
 const otp = (req,res)=>{
 
     const message = req.query.message
     res.status(200).render('user/otp',{msg:message})
 }
+
+
 
 //to resend otp
 const reSend = async (req,res)=>{
@@ -152,6 +157,8 @@ const login = async (req,res)=>{
         res.redirect('/login?message=Something went wrong')
     }
 }
+
+
 
 // render home
 const home = async(req,res)=>{
@@ -739,7 +746,6 @@ const placeOrder =  async (req, res) => {
         const { selectedAddress, fullName, address, pincode, phone, paymentMethod } = req.body;
         console.log(selectedAddress, fullName, address, pincode, phone, paymentMethod);
         
-        // Fetch the user's cart
         const cart = await CartSchema.findOne({ userId }).populate('items.productId');
     
         if (!cart || cart.items.length === 0) {
@@ -749,19 +755,18 @@ const placeOrder =  async (req, res) => {
         const outOfStockProducts = [];
         const orderItems = [];
     
-        // Check stock for each item and prepare order items
+    
         for (const item of cart.items) {
             const product = item.productId;
     
-            // Check if the product is in stock
+        
             if (product.stock < item.quantity) {
-                outOfStockProducts.push(product.name); // Collect names of out-of-stock products
+                outOfStockProducts.push(product.name);
             } else {
-                // Decrease stock if available
+                
                 product.stock -= item.quantity;
-                await product.save(); // Save the updated product stock
+                await product.save(); 
     
-                // Prepare the order items
                 orderItems.push({
                     productID: product._id,
                     quantity: item.quantity,
@@ -776,15 +781,14 @@ const placeOrder =  async (req, res) => {
                 message: `The following products are out of stock: ${outOfStockProducts.join(', ')}`
             });
         }
-    
-        // Calculate the total amount
+
+        
         const totalAmount = orderItems.reduce((total, item) => {
             return total + item.quantity * item.price;
         }, 0);
         console.log("hurr");
         
     
-        // Create a new order
         const newOrder = new orderSchema({
             userID: userId,
             items: orderItems,
@@ -802,9 +806,11 @@ const placeOrder =  async (req, res) => {
         await newOrder.save();
     
         // Clear the user's cart after successful order
-        await CartSchema.findOneAndDelete({ user: userId });
+       const check = await CartSchema.findOneAndDelete({ userId: userId });
+
+        console.log(check);
+        
     
-        // Redirect to order confirmation page
         // res.redirect(`/order/confirmation/${newOrder._id}`);
         res.json({ orderId: newOrder._id });
     
@@ -958,6 +964,229 @@ const filter =  async (req, res) => {
 
 
 
+// forget password
+const forgotmail = (req, res) => {
+
+    const message = req.query.message;
+
+    res.render("user/forgotmail", { msg: message });
+  };
+  
+  
+
+// to send otp 
+  const forgotEmailVerify = async (req, res) => {
+    try {
+      const { email } = req.body;
+  
+      // Check if the email is in database
+      const user = await userSchema.findOne({ email });
+      if (!user) {
+        return res.redirect("/forgotmail?message=email not exist");
+      }
+  
+      req.session.email = email;
+
+      const genotp = Math.floor(1000 + Math.random() * 9000);
+
+      console.log(genotp);
+  
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL, 
+          pass: process.env.GOOGLE_MAIL_PASS_KEY, 
+        },
+      });
+  
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Your OTP for Signup",
+        text: `Your OTP for signup is ${genotp}. It will expire in 10 minutes.`,
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      // Store OTP and expiration time in session
+      req.session.otp = genotp;
+      req.session.signupdata = req.body;
+      req.session.otpExpires = Date.now() + 1 * 60 * 1000; 
+  
+      console.log(req.session.otp); 
+  
+      res.redirect("/forgetOtp");
+    } catch (error) {
+
+      console.error(error);
+      res.send("Something went wrong");
+    }
+  };
+  
+
+
+
+// to render otp page
+  const forgotOtpRender = (req, res) => {
+
+    const message = req.query.message;
+
+    res.render("user/forgetOtp", { msg: message });
+
+  };
+  
+
+
+
+// to render new pass page
+  const forgotPassOtp = (req, res) => {
+    const { otp1, otp2, otp3, otp4 } = req.body;
+    const enteredOtp = otp1 + otp2 + otp3 + otp4;
+  
+    if (!req.session.otp) {
+      return res.redirect(
+        "/forgetOtp?message=Session expired. Please request a new OTP."
+      );
+    }
+  
+    if (Date.now() > req.session.otpExpires) {
+      return res.redirect(
+        "/forgetOtp?message=OTP expired. Please request a new one."
+      );
+    }
+
+    console.log("njan forgot pass");
+  
+    if (parseInt(enteredOtp) === req.session.otp) {
+      console.log("OTP verified successfully");
+  
+      req.session.otp = null;
+      req.session.otpExpires = null;
+      res.render("user/newpass", { msg: null });
+    } else {
+      return res.redirect("/forgetOtp?message=Invalid OTP. Please try again.");
+    }
+  };
+  
+
+
+
+// to resend otp 
+  const forgotResendOTP = async (req, res) => {
+    try {
+      const email  = req.session.email;
+        console.log(email);
+        
+      const user = await userSchema.findOne({ email });
+      if (!user) {
+        return res.redirect("/forgotmail?message=emai not exist");
+      }
+  
+      const genotp = Math.floor(1000 + Math.random() * 9000);
+      console.log(genotp);
+  
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL, 
+          pass: process.env.GOOGLE_MAIL_PASS_KEY, 
+        },
+      });
+  
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Your OTP for Signup",
+        text: `Your OTP for signup is ${genotp}. It will expire in 10 minutes.`,
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      req.session.otp = genotp;
+      req.session.signupdata = req.body;
+      req.session.otpExpires = Date.now() + 1 * 60 * 1000; 
+  
+      console.log(req.session.otp); 
+  
+      res.redirect("/forgetOtp");
+
+    } catch (error) {
+
+      console.error(error);
+      res.send("Something went wrong");
+    }
+  };
+  
+
+
+
+// to update new password
+  const newpassVerify = async (req, res) => {
+    try {
+      console.log("hai");
+  
+      const { password } = req.body;
+      const email = req.session.email;
+      console.log(email, password);
+  
+      const existingUser = await userSchema.findOne({ email });
+      console.log(existingUser);
+  
+      if (!existingUser) {
+        return res.render("user/newpass", { message: "Email does not exist" });
+      }
+  
+      const hashPassword = await bcrypt.hash(password, 10);
+  
+      await userSchema.updateOne(
+        { email: email }, 
+        { $set: { password: hashPassword } } 
+      );
+  
+      console.log("Password updated successfully");
+      res.redirect('/login?message=Password changed successfully')
+    } catch (error) {
+      console.log(error);
+      res.send("Something wentwrong");
+    }
+  };
+
+
+
+// to reset password
+const resetPassword = async (req, res) => {
+    const { email, currentPassword, newPassword } = req.body;
+    console.log(email, currentPassword, newPassword);
+    
+
+    try {
+        const user = await userSchema.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        await userSchema.updateOne(
+            { email: email }, 
+            { $set: { password: hashedPassword } } 
+          );
+        return res.status(200).json({ message: 'Password updated successfully' });
+
+    } catch (error) {
+        console.error('Error updating password:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
 
 module.exports = {
     loadLogin,
@@ -987,5 +1216,14 @@ module.exports = {
     cancelOrder,
     orderDetails,
     search,
-    filter
+    filter,
+
+
+    forgotmail,
+    forgotEmailVerify,
+    forgotPassOtp,
+    forgotOtpRender,
+    forgotResendOTP,
+    newpassVerify,
+    resetPassword
 }

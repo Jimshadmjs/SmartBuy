@@ -7,18 +7,22 @@ const router = express.Router();
 
 // Route to start Google OAuth process
 router.get('/auth/google', passport.authenticate('google', {
-  scope: ['profile', 'email'] // Request profile and email from Google
+  scope: ['profile', 'email'] 
 }));
 
 // Callback route that Google redirects to
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
- async (req, res) => {
+  async (req, res) => {
+    let user = req.user
+  if(user.isBlocked){
+    res.redirect('/login?message=User is Blocked')
+  } else{
 
-  
-    
-    req.session.user=true
+    req.session.user=user
     res.redirect('/');
+  }
+
   }
 );
 
