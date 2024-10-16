@@ -37,7 +37,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
 	
     
+<style>
+	.discounted-price {
+    color: green;
+}
 
+.original-price {
+    color: red;
+    text-decoration: line-through;
+}
+
+</style>
 <!--===============================================================================================-->
 </head>
 <body class="animsition">
@@ -67,11 +77,7 @@
 								</h2>
 							</div>
 								
-							<div class="layer-slick1 animated visible-false" data-appear="zoomIn" data-delay="1600">
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Shop Now
-								</a>
-							</div>
+							
 						</div>
 					</div>
 				</div>
@@ -91,11 +97,7 @@
 								</h2>
 							</div>
 								
-							<div class="layer-slick1 animated visible-false" data-appear="slideInUp" data-delay="1600">
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Shop Now
-								</a>
-							</div>
+							
 						</div>
 					</div>
 				</div>
@@ -115,11 +117,7 @@
 								</h2>
 							</div>
 								
-							<div class="layer-slick1 animated visible-false" data-appear="rotateIn" data-delay="1600">
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Shop Now
-								</a>
-							</div>
+							
 						</div>
 					</div>
 				</div>
@@ -140,25 +138,6 @@
             </h3>
         </div>
 
-        <div class="flex-w flex-sb-m p-b-52">
-            <div class="flex-w flex-l-m filter-tope-group m-tb-10">
-                <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1" data-filter="*">
-                    All Products
-                </button>
-                <% categories.forEach(function(category) { %>
-                    <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter="<%= category._id %>">
-                        <%= category.name %>
-                    </button>
-                <% }) %>
-            </div>
-
-
-                <div class="flex-c-m stext-106 cl6 size-105 bor4 pointer hov-btn3 trans-04 m-tb-4 js-show-search">
-                    <i class="icon-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-search"></i>
-                    <i class="icon-close-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
-                    Search
-                </div>
-            </div>
 
             <!-- Search product -->
             <div class="dis-none panel-search w-full p-t-10 p-b-15">
@@ -178,50 +157,55 @@
 		<div class="row">
 			<% products.forEach(function(product) { %>
 				<div class="col-sm-6 col-md-4 col-lg-3 p-b-35">
-					<!-- Product Block -->
 					<div class="card h-100">
-						<!-- Image Section -->
-						<a href="/product_details/<%= product._id %>">   <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image"> </a>
-						
-						<!-- Card Body Section -->
+						<a href="/product_details/<%= product._id %>">
+							<img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image">
+						</a>
 						<div class="card-body">
 							<h5 class="card-title">
-								<a href="product-detail.html" class="text-dark"><strong><%= product.name%> <br> </strong><%= product.category %> </a>
+								<a href="/product_details/<%= product._id %>" class="text-dark">
+									<strong><%= product.name %> <br></strong><%= product.category %>
+								</a>
 							</h5>
+							<div class="rating">
+								<% for (let i = 1; i <= 5; i++) { %>
+									<span class="star <%= i <= product.rating ? 'filled' : '' %>">&#9733;</span>
+								<% } %>
+							</div>
 							<p class="card-text">
-								₹<%= product.price%>
+								<% if (product.offer.hasOffer) { %>
+									<span style="color: red; text-decoration: line-through;">₹<%= product.price %></span>
+									<span style="color: green;"> ₹<%= product.offer.discountedPrice %></span>
+								<% } else { %>
+									<span>₹<%= product.price %></span>
+								<% } %>
 							</p>
 						</div>
-						
-						<!-- Footer for Wishlist and Cart Buttons -->
-					<div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
-						<% if (user) { %>
-							<!-- Wishlist Button -->
-							<button class="btn btn-outline-danger btn-sm">
-								<i class="bi bi-heart"></i> Wishlist
-							</button>
-
-							<!-- Cart Button -->
-							<button class="btn btn-outline-primary btn-sm add-to-cart" data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.price %>">
-								<i class="bi bi-cart"></i> Add to Cart
-							</button>
-						<% } else { %>
-							<!-- If user is not logged in, show buttons wrapped in a link -->
-								<a href="/login" class="d-flex align-items-center">
-								<button class="btn btn-outline-danger btn-sm ">
+						<div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
+							<% if (user) { %>
+								<button class="btn btn-outline-danger btn-sm">
 									<i class="bi bi-heart"></i> Wishlist
-								</button> &nbsp &nbsp &nbsp &nbsp
-								<button class="btn btn-outline-primary btn-sm">
+								</button>
+								<button class="btn btn-outline-primary btn-sm add-to-cart" data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.offer.hasOffer ? product.offer.discountedPrice : product.price %>">
 									<i class="bi bi-cart"></i> Add to Cart
 								</button>
-							</a>
-						<% } %>
-					</div>
-
+							<% } else { %>
+								<a href="/login" class="d-flex align-items-center">
+									<button class="btn btn-outline-danger btn-sm">
+										<i class="bi bi-heart"></i> Wishlist
+									</button>
+									<button class="btn btn-outline-primary btn-sm">
+										<i class="bi bi-cart"></i> Add to Cart
+									</button>
+								</a>
+							<% } %>
+						</div>
 					</div>
 				</div>
 			<% }); %>
 		</div>
+			
+		
 	</div>
 
 	<!-- Out of Stock Modal -->

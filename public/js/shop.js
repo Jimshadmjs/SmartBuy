@@ -139,9 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const productCategory = card.querySelector('.card-title').innerText.toLowerCase();
 
             if (productName.includes(query) || productCategory.includes(query)) {
-                card.style.display = ''; // Show the card
+                card.style.display = ''; 
             } else {
-                card.style.display = 'none'; // Hide the card
+                card.style.display = 'none'; 
             }
         });
     });
@@ -174,9 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 break;
             case 'averageRating':
-                sortedProducts = products.sort((a, b) => {
-                });
-                break;
+                    sortedProducts = products.sort((a, b) => {
+                        const ratingA = parseFloat(a.getAttribute('data-rating')) || 0;
+                        const ratingB = parseFloat(b.getAttribute('data-rating')) || 0;
+                        return ratingB - ratingA; // Higher ratings come first
+                    });
+                    break;
             case 'newness':
                 sortedProducts = products.sort((a, b) => {
                     

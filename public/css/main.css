@@ -3345,3 +3345,10 @@ input.num-product::-webkit-inner-spin-button {
   object-fit: cover;     
   object-position: center; 
 }
+.star {
+  color: lightgray;
+  font-size: 1.2em;
+}
+.star.filled {
+  color: gold;
+}

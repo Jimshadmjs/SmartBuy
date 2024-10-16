@@ -1,8 +1,8 @@
-const adminModel = require("../models/adminModel")
-const User = require('../models/userModel')
-const categorySchema = require('../models/category')
-const productSchema = require('../models/productModel')
-const orderSchema = require('../models/orderModel')
+const adminModel = require("../../models/adminModel")
+const User = require('../../models/userModel')
+const categorySchema = require('../../models/category')
+const productSchema = require('../../models/productModel')
+const orderSchema = require('../../models/orderModel')
 const multer = require('multer');
 const bcrypt = require('bcrypt')
 
@@ -19,6 +19,7 @@ const login = (req,res)=>{
 
     res.render("admin/login",{msg:message})
 }
+
 
 // get info and redirect home
 const loggedIn = async (req,res)=>{
@@ -45,10 +46,15 @@ const loggedIn = async (req,res)=>{
 
 }
 
+
+
 //render home page
 const dashboard = (req,res)=>{
     res.status(200).render('admin/dashboard')
 }
+
+
+
 
 // render userManagement
 const users = async (req, res) => {
@@ -61,7 +67,7 @@ try {
     const totalUsers = await User.countDocuments(); 
     const totalPages = Math.ceil(totalUsers / limit); 
 
-    const users = await User.find().skip(offset).limit(limit); 
+    const users = await User.find().sort({ createdAt: -1 }).skip(offset).limit(limit); 
 
     res.status(200).render('admin/users', {
         users,
@@ -214,6 +220,7 @@ const products = async (req,res)=>{
     
         const categories = await categorySchema.find()
         const products = await productSchema.find()
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate({
@@ -327,7 +334,7 @@ const change_file =async (req, res) => {
         if (req.files && req.files.length > 0) {
             req.files.forEach((file, index) => {
                 if (index < product.images.length) {
-                    product.images[index] = file.filename; // Replace with the new image
+                    product.images[index] = file.filename; 
                 }
             });
         }
@@ -380,6 +387,8 @@ const toggle_list = async (req, res) => {
   };
 
 
+
+
 // logout
 const logout = (req,res)=>{
     try {
@@ -398,12 +407,13 @@ const logout = (req,res)=>{
 // to render order management
 const order = async (req, res) => {
     const currentPage = parseInt(req.query.page) || 1;
-    const itemsPerPage = 10; // Adjust as necessary
+    const itemsPerPage = 10; 
 
     try {
         const totalOrders = await orderSchema.countDocuments();
         const orders = await orderSchema.find()
-            .populate('userID') // Assuming userId is an object reference to a user model
+            .sort({ createdAt: -1 })
+            .populate('userID') 
             .skip((currentPage - 1) * itemsPerPage)
             .limit(itemsPerPage);
 
@@ -449,6 +459,33 @@ const changeStatus = (req, res) => {
 }
 
 
+// to approve cancel request
+const approveCancellation = async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+        const order = await orderSchema.findOneAndUpdate(
+            { _id: orderId },
+            { 
+                orderStatus: 'Cancelled',
+                cancellationRequested: false 
+            },
+            { new: true } 
+        );
+
+        
+        
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json({ message: 'Order cancelled successfully.' });
+    } catch (error) {
+        console.error('Error approving cancellation:', error);
+        res.status(500).json({ message: 'An error occurred while cancelling the order.' });
+    }
+};
 
 
 
@@ -469,5 +506,6 @@ module.exports={
     toggle_list,
     logout,
     order,
-    changeStatus
+    changeStatus,
+    approveCancellation
 }

@@ -2,47 +2,87 @@
         // order----------------------------------------------------------------------------------------------------
         
         
-        document.addEventListener('DOMContentLoaded', function () {
+//         document.addEventListener('DOMContentLoaded', function () {
+//     const cancelOrderButtons = document.querySelectorAll('.cancelOrder');
+
+//     cancelOrderButtons.forEach(button => {
+//         button.addEventListener('click', function () {
+//             const orderId = this.getAttribute('data-id');
+
+//             // SweetAlert confirmation
+//             Swal.fire({
+//                 title: 'Are you sure?',
+//                 text: "Do you really want to cancel this order?",
+//                 icon: 'warning',
+//                 showCancelButton: true,
+//                 confirmButtonColor: '#d33',
+//                 cancelButtonColor: '#3085d6',
+//                 confirmButtonText: 'Yes, cancel it!'
+//             }).then((result) => {
+//                 if (result.isConfirmed) {
+//                     // Send cancel order request using Axios
+//                     axios.post(`/order/cancel/${orderId}`)
+//                         .then(response => {
+//                             Swal.fire(
+//                                 'Cancelled!',
+//                                 response.data.message,
+//                                 'success'
+//                             ).then(() => {
+//                                 location.reload(); // Reload to see updated orders
+//                             });
+//                         })
+//                         .catch(error => {
+//                             Swal.fire(
+//                                 'Error!',
+//                                 error.response.data.message || 'Something went wrong!',
+//                                 'error'
+//                             );
+//                         });
+//                 }
+//             });
+//         });
+//     });
+// });
+
+
+document.addEventListener('DOMContentLoaded', function () {
     const cancelOrderButtons = document.querySelectorAll('.cancelOrder');
+    let orderIdToCancel = null; // Variable to store the order ID to cancel
+    let modal; // Variable to hold the modal instance
 
     cancelOrderButtons.forEach(button => {
         button.addEventListener('click', function () {
-            const orderId = this.getAttribute('data-id');
-
-            // SweetAlert confirmation
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you really want to cancel this order?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, cancel it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Send cancel order request using Axios
-                    axios.post(`/order/cancel/${orderId}`)
-                        .then(response => {
-                            Swal.fire(
-                                'Cancelled!',
-                                response.data.message,
-                                'success'
-                            ).then(() => {
-                                location.reload(); // Reload to see updated orders
-                            });
-                        })
-                        .catch(error => {
-                            Swal.fire(
-                                'Error!',
-                                error.response.data.message || 'Something went wrong!',
-                                'error'
-                            );
-                        });
-                }
-            });
+            orderIdToCancel = this.getAttribute('data-id');
+            modal = new bootstrap.Modal(document.getElementById('cancelOrderModal')); // Create new modal instance
+            modal.show(); // Show the modal
         });
     });
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+        const reason = document.getElementById('cancellationReason').value.trim();
+
+        if (!reason) {
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-message').innerText = 'Please enter a reason for cancellation.';
+            return;
+        }
+
+        // Send cancel order request using Axios
+        axios.post(`/order/cancel/${orderIdToCancel}`, { reason })
+            .then(response => {
+                modal.hide(); // Hide the modal
+                Swal.fire('Cancelled!', response.data.message, 'success').then(() => {
+                    location.reload(); // Reload to see updated orders
+                });
+            })
+            .catch(error => {
+                modal.hide(); // Hide the modal
+                Swal.fire('Error!', error.response.data.message || 'Something went wrong!', 'error');
+            });
+    });
 });
+
+
 
 
 
@@ -60,9 +100,12 @@ document.addEventListener('DOMContentLoaded', function () {
             axios.get(`/order/details/${orderId}`)
                 .then(response => {
                     const order = response.data;
-
+                    console.log(order);
+                    
                     // Populate the modal with order details
-                    document.getElementById('orderedDate').innerText = new Date(order.orderedDate).toLocaleDateString();
+                    const orderedDate = new Date(order.orderedDate);
+                    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                    document.getElementById('orderedDate').innerText = orderedDate.toLocaleDateString('en-IN', options);
                     document.getElementById('orderTime').innerText = new Date(order.orderedDate).toLocaleTimeString();
                     document.getElementById('orderStatus').innerText = order.orderStatus;
                     document.getElementById('shippingAddress').innerText = `${order.shippingAddress.fullname}, ${order.shippingAddress.address},  ${order.shippingAddress.pincode}`;
@@ -98,9 +141,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-
-
-
 
 
 

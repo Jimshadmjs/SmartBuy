@@ -45,7 +45,52 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
+<style>
+   .custom-modal {
+    max-width: 800px; 
+}
 
+.custom-modal-header {
+    background-color: #778390; 
+    color: white;
+}
+
+.custom-modal-body {
+    background-color: #f8f9fa; 
+}
+
+.custom-shipping-address {
+    border: 1px solid #ced4da;
+    padding: 0.5rem; 
+    border-radius: 0.25rem; 
+}
+
+.custom-info-table {
+    width: 100%; /* Full width for the table */
+    margin-bottom: 1rem; /* Space below the table */
+}
+
+.custom-ordered-products {
+    margin-top: 1rem; /* Space between products and header */
+}
+
+.product-card {
+    width: 150px; /* Fixed width for product cards */
+    height: 250px; /* Fixed height for product cards */
+    margin-bottom: 1rem; /* Space between product cards */
+    overflow: hidden; /* Hide overflow for aesthetics */
+}
+
+.product-card img {
+    max-width: 100%; /* Responsive image */
+    height: auto; /* Maintain aspect ratio */
+}
+
+.product-card .card-body {
+    text-align: center; /* Center text within the card */
+}
+
+</style>
     
 
 </head>
@@ -93,10 +138,10 @@
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" value="<%= user.email %>" required>
+                            <input type="email" class="form-control" id="email" value="<%= user.email %>" readonly>
                         </div>
                         <button type="submit" class="btn btn-primary">Update Profile</button>
-                        <button type="button" class="btn btn-secondary" id="resetPasswordBtn">Reset Password</button>
+                        <button type="button" class="btn btn-secondary" id="resetPasswordBtn">Change Password</button>
                     </form>
                 </div>
                 
@@ -105,7 +150,7 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Reset Password</h5>
+                                <h5 class="modal-title">Change Password</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
@@ -125,9 +170,13 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="form-group" id="currentPasswordNote" style="display: none;">
-                                        <small class="form-text text-muted">This field is auto-filled if you have a Google account.</small>
-                                    </div>
+
+                                    <% if (user && user.googleId) { %>
+                                        <div class="form-group" id="currentPasswordNote">
+                                            <small class="form-text text-muted">Your current password is : 12345678</small>
+                                        </div>
+                                    <% } %>
+                                    
                                     <div class="form-group">
                                         <label for="newPassword">New Password</label>
                                         <div class="input-group">
@@ -292,7 +341,7 @@
                                     <div class="product-list">
                                         <% order.items.forEach(item => { %>
                                         <div class="product-info">
-                                            <img src="/<%= item.productID.images[0] %>" alt="<%= item.productID.name %>" class="product-image">
+                                            <img src="/<%= item.productID.images[0] %>" alt="<%= item.productID %>" class="product-image">
                                             <span> x <%= item.quantity %></span>
                                         </div>
                                         <% }) %>
@@ -318,33 +367,71 @@
                     <% } %>
 
 
-
-                    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-                        <div class="modal-dialog custom-modal"> <!-- Use a custom class for wider modal -->
+                    <!-- Cancellation Reason Modal -->
+                    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="orderDetailModalLabel">Order Details</h5>
+                                    <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <h5>Ordered Date: <span id="orderedDate"></span></h5>
-                                    <h5>Order Time: <span id="orderTime"></span></h5>
-                                    <h5>Status: <span id="orderStatus"></span></h5>
-                                    
-                                    <h5>Shipping Address:</h5>
-                                    <p id="shippingAddress"></p>
-                    
-                                    <h5>Ordered Products:</h5>
-                                    <div id="orderedProducts" class="row"></div>
-                                    
-                                    <h5>Total Amount: <span id="totalAmount"></span></h5>
+                                    <textarea id="cancellationReason" rows="4" class="form-control" placeholder="Enter reason for cancellation"></textarea>
+                                    <div id="error-message" class="text-danger mt-2" style="display:none;"></div>
                                 </div>
                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Submit Cancellation</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- to show order details -->
+                    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg custom-modal">
+                            <div class="modal-content">
+                                <div class="modal-header border-0 custom-modal-header">
+                                    <h5 class="modal-title" id="orderDetailModalLabel">Order Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body custom-modal-body">
+                                    <h5 class="text-muted">Shipping Address:</h5>
+                                    <p id="shippingAddress" class="border p-2 rounded custom-shipping-address"></p>
+                                    
+                                    <h5 class="text-muted">Order Information:</h5>
+                                    <table class="table table-bordered custom-info-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Ordered Date</th>
+                                                <td id="orderedDate" class="fw-bold"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Order Time</th>
+                                                <td id="orderTime" class="fw-bold"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Status</th>
+                                                <td id="orderStatus" class="fw-bold"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <h5 class="text-muted">Ordered Products:</h5>
+                                    <div id="orderedProducts" class="row custom-ordered-products"></div>
+                                    
+                                    <h5 class="text-muted">Total Amount: <span id="totalAmount" class="fw-bold"></span></h5>
+                                </div>
+                                <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    
+                    
                     
 
 
@@ -532,7 +619,6 @@ $(document).ready(function() {
     }
 }); 
         
-
 </script>
 
 

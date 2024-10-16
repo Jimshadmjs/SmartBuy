@@ -55,6 +55,21 @@
 .zoom-image {
     cursor: crosshair;
 }
+.rating {
+    display: flex;
+    cursor: pointer;
+}
+
+.star {
+    color: lightgray;
+    font-size: 1.5em;
+    margin-right: 5px;
+}
+
+.star.filled {
+    color: gold;
+}
+
 
 </style>
 
@@ -120,93 +135,111 @@
 	  
 			<!-- Product Details -->
 			<div class="col-md-6 col-lg-5 p-b-30">
-			  <div class="p-r-50 p-t-5 p-lr-0-lg">
-				<h4 class="mtext-105 cl2 js-name-detail p-b-14">
-				  <%= product.name %>
-				</h4>
-	  
-				<span class="mtext-106 cl2">
-				  ₹<%= product.price %>
-				</span>
-	  
-				<p class="stext-102 cl3 p-t-23">
-				  <%= product.description %>
-				</p>
-	  
-				<!-- Stock and Availability -->
-				<div class="p-t-33">
-				  <p class="stext-102 cl3 p-b-5">
-					<%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
-				  </p>
-
-				   <!-- Show remaining stock quantity -->
-				   <% if (product.stock > 0) { %>
-					<p class="stext-102 cl3 p-b-5">
-						Remaining stock: <%= product.stock %> item<%= product.stock > 1 ? 's' : '' %>
+				<div class="p-r-50 p-t-5 p-lr-0-lg">
+					<h4 class="mtext-105 cl2 js-name-detail p-b-14">
+						<%= product.name %>
+					</h4>
+			
+					<% if (product.offer.hasOffer || (product.categoryOffer && product.categoryOffer.hasOffer)) { %>
+						<span class="mtext-106 cl2" style="text-decoration: line-through; color: red;">
+							₹<%= product.price %>
+						</span>
+						<span class="mtext-106 cl2" style="color: green;">
+							₹<%= product.offer.hasOffer ? product.offer.discountedPrice : product.categoryOffer.discountedPrice %>
+						</span>
+					<% } else { %>
+						<span class="mtext-106 cl2">
+							₹<%= product.price %>
+						</span>
+					<% } %>
+			
+					<p class="stext-102 cl3 p-t-23">
+						<%= product.description %>
 					</p>
-				<% } %>
-	  
-				  <!-- Only show "Add to Cart" button if product is listed and in stock -->
-				  <% if (product.isListed && product.stock > 0) { %>
-				  <div class="flex-w flex-r-m p-b-10">
-					<div class="size-204 flex-w flex-m respon6-next">
-					  <!-- <button class="add-to-cart flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 " data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.price %>">
-						Add to cart
-					  </button> -->
-
-					  <% if (user) { %> 
-						<button class="add-to-cart flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" 
-								data-image="<%= product.images[0] %>" 
-								data-id="<%= product._id %>" 
-								data-name="<%= product.name %>" 
-								data-price="<%= product.price %>">
-						  Add to cart
-						</button>
-					  <% } else { %>
-						<p style="color: green;">Please log in to add items to your cart.</p>
-					  <% } %>
-					  
+			
+					<!-- Stock and Availability -->
+					<div class="p-t-33">
+						<p class="stext-102 cl3 p-b-5">
+							<%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+						</p>
+			
+						<!-- Show remaining stock quantity -->
+						<% if (product.stock > 0 && product.stock < 9) { %>
+							<p class="stext-102 cl3 p-b-5 text-danger">
+								Remaining stock: <%= product.stock %> item<%= product.stock > 1 ? 's' : '' %>
+							</p>
+						<% } %>
+			
+						<!-- Only show "Add to Cart" button if product is listed and in stock -->
+						<% if (product.isListed && product.stock > 0) { %>
+							<div class="flex-w flex-r-m p-b-10">
+								<div class="size-204 flex-w flex-m respon6-next">
+									<% if (user) { %> 
+										<button class="add-to-cart flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" 
+											data-image="<%= product.images[0] %>" 
+											data-id="<%= product._id %>" 
+											data-name="<%= product.name %>" 
+											data-price="<%= product.offer.hasOffer ? product.offer.discountedPrice : (product.categoryOffer && product.categoryOffer.hasOffer ? product.categoryOffer.discountedPrice : product.price) %>">
+											Add to cart
+										</button>
+									<% } else { %>
+										<p style="color: green;">Please log in to add items to your cart.</p>
+									<% } %>
+								</div>
+							</div>
+						<% } else { %>
+							<p class="stext-102 cl3 p-b-5">This product is currently unavailable.</p>
+						<% } %>
 					</div>
-				  </div>
-				  <% } else { %>
-				  <p class="stext-102 cl3 p-b-5">This product is currently unavailable.</p>
-				  <% } %>
-				</div>
-	  
-				<!-- Size and Color Options -->
-				<div class="p-t-33">
-				  <div class="flex-w flex-r-m p-b-10">
-					<div class="size-203 flex-c-m respon6">Color</div>
-					<div class="size-204 respon6-next">
-					  <div class="rs1-select2 bor8 bg0">
-						<select class="js-select2" name="color">
-						  <% product.colors.forEach(function(color) { %>
-						  <option><%= color %></option>
-						  <% }); %>
-						</select>
-						<div class="dropDownSelect2"></div>
-					  </div>
+			
+					<% if (user) { %>
+						<div class="rating" data-product-id="<%= product._id %>">
+							<% for (let i = 1; i <= 5; i++) { %>
+								<span class="star <%= i <= product.rating ? 'filled' : '' %>" data-value="<%= i %>">&#9733;</span>
+							<% } %>
+						</div>
+					<% } else { %>
+						<div class="rating" style="cursor: not-allowed;">
+							<% for (let i = 1; i <= 5; i++) { %>
+								<span class="star <%= i <= product.rating ? 'filled' : '' %>" data-value="<%= i %>" title="Login to rate">&#9733;</span>
+							<% } %>
+						</div>
+					<% } %>
+			
+					<!-- Size and Color Options -->
+					<div class="p-t-33">
+						<div class="flex-w flex-r-m p-b-10">
+							<div class="size-203 flex-c-m respon6">Color</div>
+							<div class="size-204 respon6-next">
+								<div class="rs1-select2 bor8 bg0">
+									<select class="js-select2" name="color">
+										<% product.colors.forEach(function(color) { %>
+											<option><%= color %></option>
+										<% }); %>
+									</select>
+									<div class="dropDownSelect2"></div>
+								</div>
+							</div>
+						</div>
 					</div>
-				  </div>
+			
+					<!-- Social Media Links and Wishlist -->
+					<div class="flex-w flex-m p-l-100 p-t-40 respon7">
+						<div class="flex-m bor9 p-r-10 m-r-11">
+							<a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 js-addwish-detail tooltip100" data-tooltip="Add to Wishlist">
+								<i class="zmdi zmdi-favorite"></i>
+							</a>
+						</div>
+						<a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Facebook">
+							<i class="fa fa-facebook"></i>
+						</a>
+						<a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Twitter">
+							<i class="fa fa-twitter"></i>
+						</a>
+					</div>
 				</div>
-	  
-				<!-- Social Media Links and Wishlist -->
-				<div class="flex-w flex-m p-l-100 p-t-40 respon7">
-				  <div class="flex-m bor9 p-r-10 m-r-11">
-					<a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 js-addwish-detail tooltip100"
-					  data-tooltip="Add to Wishlist">
-					  <i class="zmdi zmdi-favorite"></i>
-					</a>
-				  </div>
-				  <a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Facebook">
-					<i class="fa fa-facebook"></i>
-				  </a>
-				  <a href="#" class="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100" data-tooltip="Twitter">
-					<i class="fa fa-twitter"></i>
-				  </a>
-				</div>
-			  </div>
 			</div>
+			
 		  </div>
 	  
 		  <!-- Product Details Tabs (Description, Additional Info) -->
@@ -260,6 +293,9 @@
 		  </div>
 		</div>
 	  </section>
+
+	
+	
 	  
 	
 	
@@ -414,36 +450,36 @@
 	<script>
 	window.userId = '<%= user._id%>'
 	$(document).ready(function() {
-		const zoomLevel = 1.8; // Customize this for magnification level
-		const magnifiedView = $('#magnified-view');
-	
-		$('.zoom-image').on('mouseenter', function(event) {
-			const img = $(this);
-			const imgWidth = img.width();
-			const imgHeight = img.height();
-	
-			// Set the background image and size for the magnified view
-			magnifiedView.css({
-				'background-image': 'url(' + img.attr('src') + ')',
-				'background-size': (imgWidth * zoomLevel) + 'px ' + (imgHeight * zoomLevel) + 'px',
-				'display': 'block'
-			});
-		}).on('mousemove', function(event) {
-			const img = $(this);
-			const y = event.pageX - img.offset().left; // Get mouse x position relative to the image
-			const x = event.pageY - img.offset().top; // Get mouse y position relative to the image
-	
-			// Calculate background position
-			const bgPosX = (x * zoomLevel) - (magnifiedView.width() / 2);
-			const bgPosY = (y * zoomLevel) - (magnifiedView.height() / 2);
-	
-			magnifiedView.css({
-				'background-position': `${bgPosY}px ${bgPosX}px`,
-			});
-		}).on('mouseleave', function() {
-			magnifiedView.hide();
-		});
-	});
+    const zoomLevel = 1.8; 
+    const magnifiedView = $('#magnified-view');
+    
+    $('.zoom-image').on('mouseenter', function(event) {
+        const img = $(this);
+        const imgWidth = img.width();
+        const imgHeight = img.height();
+        
+        magnifiedView.css({
+            'background-image': 'url(' + img.attr('src') + ')',
+            'background-size': (imgWidth * zoomLevel) + 'px ' + (imgHeight * zoomLevel) + 'px',
+            'display': 'block'
+        });
+    }).on('mousemove', function(event) {
+        const img = $(this);
+        const x = event.pageX - img.offset().left; 
+        const y = event.pageY - img.offset().top; 
+
+        const bgPosX = (x * zoomLevel) - (magnifiedView.width() / 2);
+        const bgPosY = (y * zoomLevel) - (magnifiedView.height() / 2);
+
+        magnifiedView.css({
+            'background-position': `${-bgPosX}px ${-bgPosY}px`,
+        });
+    }).on('mouseleave', function() {
+        magnifiedView.hide();
+    });
+});
+
+
 	
 	</script>
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -553,6 +589,47 @@ function showSuccessAlert(message) {
 }
 
 	
+
+// rating
+document.querySelectorAll('.rating').forEach(ratingElement => {
+    ratingElement.addEventListener('click', (event) => {
+        const stars = Array.from(ratingElement.querySelectorAll('.star'));
+        const clickedStar = event.target.closest('.star');
+
+        if (clickedStar) {
+            const ratingValue = parseInt(clickedStar.getAttribute('data-value'));
+            const productId = ratingElement.getAttribute('data-product-id');
+
+            // Update the star display
+            stars.forEach(star => {
+                star.classList.toggle('filled', parseInt(star.getAttribute('data-value')) <= ratingValue);
+            });
+
+            // Submit the rating
+            submitRating(productId, ratingValue);
+        }
+    });
+});
+
+async function submitRating(productId, rating) {
+	console.log(productId, rating);
+	
+    try {
+        const response = await axios.post(`/rate/${productId}`, {
+            rating: rating
+        });
+
+        if (response.status === 200) {
+            alert(response.data.message); // Show success message
+        } else {
+            alert('Error submitting rating.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting rating.');
+    }
+}
+
 
 		
 	</script>

@@ -121,6 +121,14 @@
 .ok-button:hover {
     background-color: #218838;
 }
+.star {
+    color: lightgray;
+    font-size: 1.2em;
+}
+.star.filled {
+    color: gold;
+}
+
     </style>
 
 </head>
@@ -141,7 +149,7 @@
                     All Products
                 </button>
                 <% categories.forEach(function(category) { %>
-                    <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter="<%= category._id %>">
+                    <button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter="<%= category.name %>">
                         <%= category.name %>
                     </button>
                 <% }) %>
@@ -240,7 +248,10 @@
 
     <div class="row" id="product-container">
         <% products.forEach(function(product) { %>
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35" data-category="<%= product.category %>" data-created-at="<%= product.createdAt %>">
+            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35" 
+                 data-rating="<%= product.rating %>" 
+                 data-category="<%= product.category %>" 
+                 data-created-at="<%= product.createdAt %>">
                 <div class="card h-100">
                     <a href="/product_details/<%= product._id %>">
                         <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image" alt="Product Image">
@@ -252,7 +263,19 @@
                                 <%= product.category %>
                             </a>
                         </h5>
-                        <p class="card-text">₹<%= product.price %></p>
+                        <div class="rating">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                                <span class="star <%= i <= product.rating ? 'filled' : '' %>">&#9733;</span>
+                            <% } %>
+                        </div>
+                        <p class="card-text">
+                            <% if (product.offer.hasOffer) { %>
+                                <span style="text-decoration: line-through; color: red;">₹<%= product.price %></span>
+                                <span style="color: green;"> ₹<%= product.offer.discountedPrice %></span>
+                            <% } else { %>
+                                ₹<%= product.price %>
+                            <% } %>
+                        </p>
                     </div>
                     <div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
                         <% if (user) { %>
@@ -260,10 +283,10 @@
                                 <i class="bi bi-heart"></i> Wishlist
                             </button>
                             <button class="btn btn-outline-primary btn-sm add-to-cart" 
-                                data-image="<%= product.images[0] %>" 
-                                data-id="<%= product._id %>" 
-                                data-name="<%= product.name %>" 
-                                data-price="<%= product.price %>">
+                                    data-image="<%= product.images[0] %>" 
+                                    data-id="<%= product._id %>" 
+                                    data-name="<%= product.name %>" 
+                                    data-price="<%= product.offer.hasOffer ? product.offer.discountedPrice : product.price %>">
                                 <i class="bi bi-cart"></i> Add to Cart
                             </button>
                         <% } else { %>
@@ -280,7 +303,7 @@
                 </div>
             </div>
         <% }); %>
-    </div>
+    </div>    
     
     
 </div>
@@ -467,33 +490,35 @@
 </body>
 </html>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.filter-tope-group button').forEach(button => {
         button.addEventListener('click', function() {
             const filterValue = this.getAttribute('data-filter');
             console.log(`Filtering by: ${filterValue}`);
-            // Remove active class from all buttons
+
             document.querySelectorAll('.filter-tope-group button').forEach(btn => {
                 btn.classList.remove('how-active1');
             });
 
-            // Add active class to the clicked button
             this.classList.add('how-active1');
 
-            // Filter products
             const products = document.querySelectorAll('#product-container .col-sm-6');
 
             products.forEach(product => {
-                
                 const productCategory = product.getAttribute('data-category');
-                console.log(productCategory); 
+                console.log(`Product category: ${productCategory}`);    
 
                 if (filterValue === '*' || productCategory === filterValue) {
-                    product.style.display = 'block';
+                    product.style.display = 'block'; 
                 } else {
-                    product.style.display = 'none';
+                    product.style.display = 'none'; 
                 }
             });
         });
     });
+});
+
+
+
 </script>
 

@@ -3,7 +3,9 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const user = require('../middleware/userAuth')
-const userController = require("../contorller/userController")
+const userController = require("../contorller/user/userController")
+const profileController = require('../contorller/user/profileController')
+const cartController = require('../contorller/user/cartController')
 
 
 router.get('/logout',userController.logout)
@@ -20,33 +22,35 @@ router.get('/login',user.isLogin,user.isLogin,userController.loadLogin);
 router.post('/login',userController.login)
 
 router.get('/product_details/:id',userController.product_details)
+router.post('/rate/:productId',userController.rating)
 router.get('/shope',userController.shop)
 
 
-router.get('/profile/:id',user.checkSession,userController.profile)
-router.post('/addAddress/:id',userController.addAddress)
-router.patch('/editAddress/:id',userController.editAddress)
-router.delete('/daleteAddress/:id',userController.daleteAddress)
-router.patch('/userDetails/:id',userController.updateDetails)
+router.get('/profile',user.checkSession,profileController.profile)
+router.post('/addAddress/:id',profileController.addAddress)
+router.patch('/editAddress/:id',profileController.editAddress)
+router.delete('/daleteAddress/:id',profileController.daleteAddress)
+router.patch('/userDetails/:id',profileController.updateDetails)
 
 
 
-router.get('/cart/:id',user.checkSession,userController.cart)
-router.post('/cart/check-stock/:id',userController.check_stock)
-router.post('/cart/add/:id',userController.addCart)
-router.patch('/cart/remove/:id',userController.removeCart)
-router.patch('/cart/update/:userId',userController.updateCart)
+router.get('/cart/:id',user.checkSession,cartController.cart)
+router.post('/cart/check-stock/:id',cartController.check_stock)
+router.post('/cart/add/:id',cartController.addCart)
+router.patch('/cart/remove/:id',cartController.removeCart)
+router.patch('/cart/update/:userId',cartController.updateCart)
 
 
-router.get('/checkout/:id',user.checkSession,userController.checkout)
-router.post('/checkout/submit/:id',userController.placeOrder)
-router.get('/order/confirmation/:orderId',userController.conformationOrde)
-
-router.post('/order/cancel/:orderId',userController.cancelOrder)
-router.get('/order/details/:orderId',userController.orderDetails)
+router.get('/checkout/:id',user.checkSession,cartController.checkout)
+router.post('/checkout/submit/:id',cartController.placeOrder)
+router.get('/order/confirmation/:orderId',cartController.conformationOrde)
 
 
-router.get('/search',userController.search)
+
+router.post('/order/cancel/:orderId',profileController.cancelOrder)
+router.get('/order/details/:orderId',profileController.orderDetails)
+
+
 
 // meybe helpfull in futer
 router.get('/products',userController.filter)
@@ -63,6 +67,7 @@ router.post("/update-password",userController.newpassVerify)
 
 //resetPassword
 router.patch('/resetPassword/:userId',userController.resetPassword)
+
 
 
 module.exports = router;

@@ -7,6 +7,46 @@
     <link rel="stylesheet" href="/css/admin/category.css"> 
     <link rel="stylesheet" href="/css/admin/main.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.4); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 45%; 
+            height: 25%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #cancellationReasonText {
+            color: black;
+        }
+        #reason {
+            color: black;
+        }
+    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -35,19 +75,32 @@
                     <tr>
                         <td><%= order._id %></td>
                         <td><%= order.userID.username %></td>
-                        <td><%= order.orderStatus %></td>
+                        <td>
+                            <% if (order.cancellationRequested) { %>
+                                <span class="badge bg-info" style="cursor:pointer;" onclick="showCancellationModal('<%= order.cancellationReason %>', '<%= order._id %>')">Request</span>
+                                <span class="dot" style="background-color: blue; display:inline-block; width:10px; height:10px; border-radius:50%; margin-left:5px;"></span>
+                            <% } else if (order.orderStatus === 'Cancelled') { %>
+                                <span class="badge bg-danger">Cancelled</span>
+                            <% } else { %>
+                                <%= order.orderStatus %>
+                            <% } %>
+                        </td>
                         <td>₹<%= order.totalAmount %></td>
                         <td><%= order.paymentMethod %></td>
                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                         <td>
                             <div class="action-buttons">
-                                <select class="status-select" onchange="changeOrderStatus('<%= order._id %>', this.value)">
-                                    <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                    <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
-                                    <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                    <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                    <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                </select>
+                                <% if (order.orderStatus !== 'Cancelled') { %>
+                                    <select class="status-select" onchange="changeOrderStatus('<%= order._id %>', this.value)">
+                                        <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                        <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                        <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                        <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                        <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                    </select>
+                                <% } else { %>
+                                    <span class="text-muted">Cannot Change</span>
+                                <% } %>
                             </div>
                         </td> 
                     </tr>
@@ -59,35 +112,71 @@
         <!-- Pagination -->
         <div class="pagination">
             <% if (currentPage > 1) { %>
-                <a href="?page=<%= currentPage - 1 %>" class="prev-btn">Previous</a>
+                <a href="?page=<%= currentPage - 1 %>">Previous</a>
             <% } %>
             <% for (let i = 1; i <= totalPages; i++) { %>
                 <a href="?page=<%= i %>" class="<%= currentPage === i ? 'active' : '' %>"><%= i %></a>
             <% } %>
             <% if (currentPage < totalPages) { %>
-                <a href="?page=<%= currentPage + 1 %>" class="next-btn">Next</a>
+                <a href="?page=<%= currentPage + 1 %>">Next</a>
             <% } %>
         </div>
+
+        <!-- Cancellation Reason Modal -->
+        <div class="modal" id="cancellationModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h5 id="reason">Cancellation Reason</h5>
+                <p id="cancellationReasonText"></p>
+                
+                <button id="approveCancellationBtn">Approve Cancellation</button>
+                <button onclick="closeModal()">Close</button>
+            </div>
+        </div>
+        
     </div>
+
+    <script> 
+        function changeOrderStatus(orderId, newStatus) {
+            axios.put(`/admin/orders/${orderId}/status`, { status: newStatus })
+                .then(response => {
+                    console.log('Status updated successfully:', response.data);
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    alert('Failed to update status. Please try again.');
+                });
+        }
+
+        function showCancellationModal(reason, orderId) {
+            console.log('Cancellation Reason:', reason); 
+            document.getElementById('cancellationReasonText').innerText = reason; 
+            document.getElementById('cancellationModal').style.display = "block"; 
+            
+            const approveBtn = document.getElementById('approveCancellationBtn');
+            approveBtn.onclick = function() {
+                approveCancellation(orderId);
+                closeModal(); 
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('cancellationModal').style.display = "none"; 
+        }
+
+        function approveCancellation(orderId) {
+            axios.post(`/admin/orders/${orderId}/approve-cancellation`)
+                .then(response => {
+                    console.log('Cancellation approved successfully:', response.data);
+                    location.reload(); 
+                    
+                })
+                .catch(error => {
+                    console.error('Error approving cancellation:', error);
+                    alert('Failed to approve cancellation. Please try again.');
+                });
+        }
+    </script>
 </body>
-
-
-<script>
-    function changeOrderStatus(orderId, newStatus) {
-    axios.put(`/admin/orders/${orderId}/status`, { status: newStatus })
-        .then(response => {
-            // Handle success, maybe show a success message or update the UI
-            console.log('Status updated successfully:', response.data);
-            // Optionally reload the page or update the status in the UI
-            location.reload();
-        })
-        .catch(error => {
-            // Handle error
-            console.error('Error updating status:', error);
-            alert('Failed to update status. Please try again.');
-        });
-}
-
-</script>
-
 </html>

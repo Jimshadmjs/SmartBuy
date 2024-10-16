@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offer Management</title>
+    <link rel="stylesheet" href="/css/admin/category.css"> 
+    <link rel="stylesheet" href="/css/admin/main.css">
+    <link rel="stylesheet" href="/css/admin/offers.css">
+
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <%- include('partials/_sidebar') %>
+
+    <div class="main-content">
+        <%- include('partials/_header') %>
+
+        <h2>Offer Management</h2>
+
+        <!-- Add Offer Button -->
+        <button class="add-offer-btn" onclick="openOfferModal()">Add Offer</button>
+
+        <div class="offer-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Offer Name</th>
+                        <th>Discount (%)</th>
+                        <th>Target Type</th>
+                        <th>Target</th> <!-- New column for Target -->
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% offers.forEach(function(offer) { %>
+                    <tr>
+                        <td><%= offer.title %></td>
+                        <td><%= offer.discountAmount %>%</td>
+                        <td><%= offer.targetType %></td>
+                        <td>
+                            <% if (offer.targetType === 'Product') { %>
+                                <select>
+                                    <% offer.selectedProducts.forEach(function(product) { %>
+                                        <option value="<%= product._id %>"><%= product.name %></option>
+                                    <% }); %>
+                                </select>
+                            <% } else if (offer.targetType === 'Category') { %>
+                                <select>
+                                        <% offer.selectedCategory.forEach(function(category) { %>
+                                            <option value="<%= category._id %>"><%= category.name %></option>
+                                        <% }); %>
+                                    
+                                </select>
+                            <% } else { %>
+                                <span>No Target</span>
+                            <% } %>
+                        </td>
+                        
+                        <td><%= new Date(offer.startDate).toLocaleDateString() %></td>
+                        <td><%= new Date(offer.endDate).toLocaleDateString() %></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="edit-btn-offer" onclick="openEditOfferModal('<%= offer._id %>', '<%= offer.title %>', '<%= offer.discountAmount %>', '<%= offer.targetType %>', '<%= offer.startDate %>', '<%= offer.endDate %>',' <%= JSON.stringify(offer.selectedProducts) %>', '<%= JSON.stringify(offer.selectedCategories) %>')">Edit</button>
+                                <% if (offer.isActive) { %>
+                                    <button class="deactivate-btn-offer" onclick="toggleOfferStatus('<%= offer.id %>', false)">Deactivate</button>
+                                <% } else { %>
+                                    <button class="activate-btn-offer" onclick="toggleOfferStatus('<%= offer.id %>', true)">Activate</button>
+                                <% } %>
+                            </div>
+                        </td> 
+                    </tr>
+                    <% }); %>
+                </tbody>
+                
+            </table>
+        </div>
+        
+
+        <!-- Modal for Adding/Editing Offers -->
+        <div class="modal-offer" id="offerModal">
+            <div class="modal-content-offer">
+                <span class="close-offer" onclick="closeModal()">&times;</span>
+                <h5 id="modalTitle">Add Offer</h5>
+                <form id="offerForm">
+                    <input type="hidden" id="offerId" name="offerId">
+                    
+                    <label for="offerName">Offer Name:</label>
+                    <input type="text" id="offerName" name="offerName" required>
+                    <div class="error-message" id="offerNameError"></div>
+            
+                    <label for="discount">Discount (%):</label>
+                    <input type="number" id="discount" name="discount" required min="0">
+                    <div class="error-message" id="discountError"></div>
+            
+                    <label for="targetType">Target Type:</label>
+                    <select id="targetType" name="targetType" onchange="updateProducts()" required>
+                        <option value="">Select...</option>
+                        <option value="Category">Category</option>
+                        <option value="Product">Product</option>
+                    </select>
+                    <div class="error-message" id="targetTypeError"></div>
+            
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate" required>
+            
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                    <div class="error-message" id="endDateError"></div>
+            
+                    <div id="productSelectContainer" required>
+                        <label for="productSelect">Select Products:</label>
+                        <!-- Dynamically generated checkboxes will appear here -->
+                    </div>
+                    <div class="error-message" id="productSelectError"></div>
+            
+                    <div id="categorySelectContainer" style="display:none;">
+                        <label for="categorySelect">Select Category:</label>
+                        <!-- Dynamically generated radio buttons will appear here -->
+                    </div>
+                    <div class="error-message" id="categorySelectError"></div>
+            
+                    <button type="submit" class="submit-btn">Save Offer</button>
+                </form>
+            </div>
+        </div>
+        
+        
+
+       <!-- Modal for Editing Offers -->
+        <div class="modal-offer" id="editOfferModal">
+            <div class="modal-content-offer">
+                <span class="close-offer" onclick="closeEditModal()">&times;</span>
+                <h5 id="editModalTitle">Edit Offer</h5>
+                <form id="editOfferForm">
+                    <input type="hidden" id="editOfferId" name="editOfferId">
+                    
+                    <label for="editOfferName">Offer Name:</label>
+                    <input type="text" id="editOfferName" name="editOfferName" required>
+                    <div class="error-message" id="editOfferNameError"></div>
+
+                    <label for="editDiscount">Discount (%):</label>
+                    <input type="number" id="editDiscount" name="editDiscount" required min="0">
+                    <div class="error-message" id="editDiscountError"></div>
+
+                    <label for="editTargetType">Target Type:</label>
+                    <select id="editTargetType" name="editTargetType" onchange="updateEditProducts()" required>
+                        <option value="">Select...</option>
+                        <option value="Category">Category</option>
+                        <option value="Product">Product</option>
+                    </select>
+                    <div class="error-message" id="editTargetTypeError"></div>
+
+                    <label for="editStartDate">Start Date:</label>
+                    <input type="date" id="editStartDate" name="editStartDate" required>
+
+                    <label for="editEndDate">End Date:</label>
+                    <input type="date" id="editEndDate" name="editEndDate" required>
+                    <div class="error-message" id="editEndDateError"></div>
+
+                    <div id="editProductSelectContainer" required>
+                        <label for="editProductSelect">Select Products:</label>
+                        <!-- Dynamically generated checkboxes will appear here -->
+                    </div>
+                    <div class="error-message" id="editProductSelectError"></div>
+
+                    <div id="editCategorySelectContainer" style="display:none;">
+                        <label for="editCategorySelect">Select Category:</label>
+                        <!-- Dynamically generated radio buttons will appear here -->
+                    </div>
+                    <div class="error-message" id="editCategorySelectError"></div>
+
+                    <button type="submit" class="submit-btn">Save Offer</button>
+                </form>
+            </div>
+        </div>
+
+
+
+
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/offer?page=<%= currentPage - 1 %>&limit=10">Previous</a>
+            <% } %>
+            
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <% if (i === currentPage) { %>
+                    <span><%= i %></span> <!-- Current page -->
+                <% } else { %>
+                    <a href="/admin/offer?page=<%= i %>&limit=10"><%= i %></a>
+                <% } %>
+            <% } %>
+        
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/offer?page=<%= currentPage + 1 %>&limit=10">Next</a>
+            <% } %>
+        </div>
+        
+
+    </div>
+
+   
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/js/admin/offers.js"></script>
+
+</html>

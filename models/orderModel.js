@@ -52,7 +52,9 @@ const orderSchema = new mongoose.Schema({
     orderDate: { 
         type: Date, 
         default: Date.now 
-    }
+    },
+    cancellationRequested: { type: Boolean, default: false }, 
+    cancellationReason: { type: String, default: null }
 },{timestamps:true});
 
 module.exports = mongoose.model('Order', orderSchema);

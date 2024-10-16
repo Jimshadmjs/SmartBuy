@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require("../contorller/adminController")
+const adminController = require("../contorller/admin/adminController")
 const admin = require('../middleware/adminAuth')
+const offerController = require('../contorller/admin/offerController')
 const path = require('path');
 const productImageUpload=require('../config/multer')
+const offer = require('../models/offerModel')
 
 
 
@@ -32,9 +34,20 @@ router.post('/products/:id',adminController.toggle_list)
 
 router.get('/orders',adminController.order)
 router.put('/orders/:orderId/status',adminController.changeStatus)
+router.post('/orders/:orderId/approve-cancellation', adminController.approveCancellation)
 
 
 router.get('/logout',adminController.logout)
+
+
+router.get('/offer',offerController.offer)
+router.get('/products',offerController.products)
+router.get('/categories',offerController.categories)
+router.post('/offers/add',offerController.addOffer)
+router.patch('/offers/edit',offerController.editOffer)
+router.patch('/offers/activate',offerController.activate)
+router.patch('/offers/deactivate',offerController.deactivate)
+
 
 
 module.exports = router;

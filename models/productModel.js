@@ -9,6 +9,8 @@ const productSchema = new mongoose.Schema({
   stock: Number,
   colors: [String],
   isListed: { type: Boolean, default: true }, 
+  rating: { type: Number, default: 0 }, 
+  ratingCount: { type: Number, default: 0 }
 },{timestamps:true});
 
 module.exports = mongoose.model('Product', productSchema);

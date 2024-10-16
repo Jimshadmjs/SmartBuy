@@ -10,6 +10,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const router = express.Router();
 const authRoutes = require('./routes/auth');
+const Razorpay = require('razorpay');
 
 
 require("dotenv").config()
@@ -73,6 +74,10 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
+
+
+
+
 // Routes
 
 app.use(authRoutes);
@@ -86,6 +91,7 @@ connectDB()
 app.use((req,res,next)=>{
   res.render('error')
 })
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on http://localhost:${process.env.PORT}`);
