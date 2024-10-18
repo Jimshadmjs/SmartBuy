@@ -6,6 +6,8 @@ const categorySchema = require('../../models/category')
 const addressSchema = require('../../models/addressModel')
 const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
+const offerSchema = require('../../models/offerModel')
+const couponSchema = require('../../models/couponModel')
 // const {razorpay} = require('../../config/razorpay')
 const Razorpay = require('razorpay');
 
@@ -16,6 +18,8 @@ const razorpay = new Razorpay({
     key_id: process.env.YOUR_RAZORPAY_TEST_KEY,
     key_secret: process.env.YOUR_RAZORPAY_TEST_SECRET
 });
+
+
 
 // to rener cart page
 const cart = async (req,res)=>{
@@ -59,6 +63,14 @@ const cart = async (req,res)=>{
         const totalItems = await CartSchema.countDocuments({ userId: user });
         const totalPages = Math.ceil(totalItems / pages);
 
+       const cart = await CartSchema.findOneAndUpdate({ userId: user },{totalPrice:cartTotal},{ new: true })
+       console.log(cart);   
+       
+       if(cart){
+        cartTotal = cart.totalPrice 
+       }
+        
+ 
         res.render('user/shopingCart', {
             user: req.session.user || null,
             cartItems: filteredCartItems,  
@@ -233,11 +245,15 @@ const updateCart =  async (req, res) => {
         let itemIndex = cart.items.findIndex(item => item._id.toString() === itemId);
         
         if (itemIndex !== -1) {
-            cart.items[itemIndex].quantity = quantity; // Update the quantity
+            cart.items[itemIndex].quantity = quantity;
+
+            cart.totalPrice = cart.items.reduce((total, item) => {
+                return total + (item.price * item.quantity);
+            }, 0);
 
             await cart.save(); 
 
-            return res.json({ success: true, message: 'Item quantity updated' });
+            return res.json({ success: true, message: 'Item quantity updated', totalPrice: cart.totalPrice });
         } else {
             return res.status(404).json({ success: false, message: 'Item not found in cart' });
         }
@@ -250,65 +266,93 @@ const updateCart =  async (req, res) => {
 
 // checkout page rander
 const checkout = async (req, res) => {
-
     const userId = req.params.id;
 
     const addresses = await addressSchema.find({ user: userId });
 
-    const cartItems = await CartSchema.find({ userId }).populate('items.productId');
-    
-    if (!cartItems || cartItems.length === 0) {
+    // Retrieve the cart for the user
+    const cart = await CartSchema.findOne({ userId }).populate('items.productId');
+
+    if (!cart || cart.items.length === 0) {
         return res.render('user/checkout', {
             user: req.session.user,
             addresses,
-            cartItems: [], 
+            cartItems: [],
             cartSubtotal: 0,
             discount: 0,
-            deliveryFee: 50, 
+            deliveryFee: 50,
             total: 0
         });
     }
 
     let cartSubtotal = 0;
     let discount = 0; 
-    let deliveryFee = 0; 
+    const deliveryFee = 50; 
+    const populatedCartItems = [];
 
+    for (const item of cart.items) {
+        const product = item.productId;
 
-
-    const populatedCartItems = cartItems.flatMap(cart => {
-        return cart.items.map(item => {
-            const product = item.productId; 
-
-            const totalPriceForItem = item.quantity * product.price;
-            cartSubtotal += totalPriceForItem; 
-
-            return {
-                productName: product.name, 
-                price: product.price,
-                quantity: item.quantity,
-                imageUrl: item.imageUrl, 
-                totalPrice: totalPriceForItem
-            };
+        // Fetch applicable offers
+        const productOffers = await offerSchema.find({
+            isActive: true,
+            targetType: 'Product',
+            selectedProducts: product._id
         });
-    });
 
-    // Calculate total price (Subtotal - Discount + Delivery Fee)
-    let total = cartSubtotal - discount + deliveryFee;
+        const categoryOffers = await offerSchema.find({
+            isActive: true,
+            targetType: 'Category',
+            selectedCategory: product.categoryID
+        });
 
-    console.log(populatedCartItems);
+        const regularPrice = product.price;
+        let bestOfferPrice = regularPrice;
 
+        // Determine the best offer price
+        if (productOffers.length > 0) {
+            const productDiscountedPrice = Math.round(regularPrice - (regularPrice * (productOffers[0].discountAmount / 100)));
+            bestOfferPrice = Math.min(bestOfferPrice, productDiscountedPrice);
+        }
+
+        if (categoryOffers.length > 0) {
+            const categoryDiscountedPrice = Math.round(regularPrice - (regularPrice * (categoryOffers[0].discountAmount / 100)));
+            bestOfferPrice = Math.min(bestOfferPrice, categoryDiscountedPrice);
+        }
+
+        // Calculate total price for this item
+        const totalPriceForItem = item.quantity * bestOfferPrice;
+        cartSubtotal += totalPriceForItem;
+
+        populatedCartItems.push({
+            productName: product.name,
+            price: bestOfferPrice, 
+            quantity: item.quantity,
+            imageUrl: item.imageUrl,
+            totalPrice: totalPriceForItem
+        });
+    }
+
+    // Now you can access the totalPrice from the cart
+    const totalPriceFromSchema = cart.totalPrice;
+    
+
+    // Calculate the final total
+    let total = totalPriceFromSchema - discount + deliveryFee;
 
     res.render('user/checkout', {
         user: req.session.user,
-        addresses, 
+        addresses,
         cartItems: populatedCartItems,
-        cartSubtotal, 
-        discount, 
-        deliveryFee, 
-        total
+        cartSubtotal,
+        discount,
+        deliveryFee,
+        total,
+        totalPriceFromSchema // Optional: send this to the view if needed
     });
+};
 
-}
+
 
 
 // to place the order
@@ -339,7 +383,7 @@ const placeOrder =  async (req, res) => {
             return res.status(400).json({ message: `The following products are out of stock: ${outOfStockProducts.join(', ')}` });
         }
 
-        const totalAmount = orderItems.reduce((total, item) => total + item.quantity * item.price, 0);
+        const totalAmount = cart.totalPrice + 50
 
         // Create a new order
         const newOrder = new orderSchema({
@@ -433,6 +477,56 @@ const conformationOrde = async (req, res) => {
 }
 
 
+
+// to apply coupon
+const applyCoupon = async (req, res) => {
+    const { couponCode } = req.body;
+    const userId = req.session.user._id;  
+    
+    try {
+        const coupon = await couponSchema.findOne({ couponCode });
+        
+        if (!coupon) {
+            return res.status(400).json({ message: 'Invalid coupon code' });
+        }
+        
+        if (new Date(coupon.endDate) < new Date()) {
+            return res.status(400).json({ message: 'Coupon expired' });
+        }
+        
+        if (coupon.usedBy.includes(userId)) {
+            return res.status(400).json({ message: 'Coupon already used ' });
+        }
+
+        
+        const cart = await CartSchema.findOne({ userId });
+
+        if (cart.totalPrice < coupon.minAmount) {
+            return res.status(400).json({ message: `This coupon is available for purchases more than ${coupon.minAmount}` });
+        }
+
+        if (cart.totalPrice > coupon.maxAmount) {
+            return res.status(400).json({ message: `This coupon is only applicable for purchases less than ${coupon.maxAmount}` });
+        }
+
+        const total = cart.totalPrice - coupon.discountAmount;
+        
+        const newTotal = Math.max(total, 0);
+        
+        await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
+
+        coupon.usedBy.push(userId);
+        await coupon.save();
+        
+        res.status(200).json({ message: 'Coupon applied successfully', newTotal });
+    } catch (error) {
+        res.status(500).json({ message: 'Something went wrong', error });
+    }
+}
+
+
+
+
 module.exports={
     cart,
     addCart,
@@ -442,5 +536,5 @@ module.exports={
     checkout,
     placeOrder,
     conformationOrde,
-
+    applyCoupon
 }

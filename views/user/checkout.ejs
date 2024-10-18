@@ -169,9 +169,22 @@
                     <span>Total:</span>
                     <span>₹<%= total %></span>
                 </div>
+                <br>
+                <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
+                    <div class="flex-w flex-m m-r-20 m-tb-5">
+                        <input id="couponCodeInput" class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" placeholder="Coupon Code">
+                        <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" onclick="applyCoupon()">
+                            Apply Coupon
+                        </div>
+                    </div>
+                    <div class="error-message" id="couponCodeError"></div>
+                    <div class="success-message" id="couponSuccessMessage"></div>
+                    
+                </div>
             </div>
         </div>
     </div>
+    
 </div>
 
 <!-- Include footer partial -->
@@ -222,137 +235,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <!-- <script>
-        function populateAddress() {
-            var selectedOption = document.getElementById('addressSelect').selectedOptions[0];
-    
-            // Get data attributes
-            var fullName = selectedOption.getAttribute('data-fullname');
-            var address = selectedOption.getAttribute('data-address');
-            var pincode = selectedOption.getAttribute('data-pincode');
-            var phone = selectedOption.getAttribute('data-phone');
-    
-            // Populate the form fields
-            document.getElementById('fullName').value = fullName;
-            document.getElementById('address').value = address;
-            document.getElementById('pincode').value = pincode;
-            document.getElementById('phone').value = phone;
-        }
-    
-        function validateForm() {
-            let valid = true;
-            clearErrors();
-    
-    
-            // Validate Full Name
-            const fullName = document.getElementById('fullName').value.trim();
-            if (fullName === "") {
-                showError('nameError', 'Full Name is required.');
-                valid = false;
-            }
-    
-            // Validate Address
-            const address = document.getElementById('address').value.trim();
-            const addressRegex = /^[^,]+,[^,]+,[^,]+,[^,]+$/; // Matches "Address,state,district,place"
-    
-            if (address === "") {
-                showError('addressFieldError', 'Address is required.');
-                valid = false;
-            } else if (!addressRegex.test(address)) {
-                showError('addressFieldError', 'Address must be in the format: Address,state,district,place.');
-                valid = false;
-            }
-    
-            // Validate Pincode
-            const pincode = document.getElementById('pincode').value.trim();
-            if (pincode === "") {
-                showError('pincodeError', 'Pincode is required.');
-                valid = false;
-            } else if (!/^\d{6}$/.test(pincode)) {
-                showError('pincodeError', 'Pincode must be 6 digits.');
-                valid = false;
-            }
-    
-            // Validate Phone Number
-            const phone = document.getElementById('phone').value.trim();
-            if (phone === "") {
-                showError('phoneError', 'Phone Number is required.');
-                valid = false;
-            } else if (!/^\d+$/.test(phone)) {
-                showError('phoneError', 'Phone Number must be numeric.');
-                valid = false;
-            }
-    
-            return valid;
-        }
-    
-        function showError(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 3000);
-        }
-    
-        function clearErrors() {
-            const errorElements = document.querySelectorAll('.text-danger');
-            errorElements.forEach(el => {
-                el.textContent = '';
-                el.style.display = 'none';
-            });
-        }
-    
-        document.getElementById('checkoutForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent the default form submission
-    
-            // Validate form
-            if (validateForm()) {
-                const selectedAddress = document.getElementById('addressSelect').value;
-                const fullName = document.getElementById('fullName').value;
-                const address = document.getElementById('address').value;
-                const pincode = document.getElementById('pincode').value;
-                const phone = document.getElementById('phone').value;
-                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-    
-                // Create the body to send
-                const requestBody = {
-                    selectedAddress,
-                    fullName,
-                    address,
-                    pincode,
-                    phone,
-                    paymentMethod
-                };
-    
-                // Submit the form via Axios
-                axios.post(`/checkout/submit/<%= user._id %>`, requestBody)
-                    .then(response => {
-                        const orderId = response.data.orderId;
-                        console.log(orderId);
-                        // Redirect to order confirmation page if successful
-                        window.location.href = `/order/confirmation/${orderId}`;
-                    })
-                    .catch(error => {
-                        if (error.response && error.response.data.message) {
-                            // Show SweetAlert if there are out-of-stock products
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Out of Stock',
-                                text: error.response.data.message,
-                            });
-                        } else {
-                            // Handle any other error
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'An error occurred while processing your order.',
-                            });
-                        }
-                    });
-            }
-        });
-    </script> -->
+
     
 
 
@@ -515,5 +398,52 @@
                     });
             }
         });
+    </script>
+    
+
+    <script>
+        async function applyCoupon() {
+            const couponCode = document.getElementById('couponCodeInput').value;
+            
+            if (!couponCode) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Input',
+                    text: 'Please enter a coupon code.',
+                });
+                return;
+            }
+    
+            try {
+    const response = await axios.post('/cart/applyCoupon', { couponCode });
+
+    if (response.status === 200 && response.data.newTotal) {
+        console.log(response.data.newTotal);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: response.data.message,
+        }).then(() => {
+            location.reload();
+        });
+    } else {
+        // Handle error message from the server
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: response.data.message || 'An unexpected error occurred.',
+        });
+    }
+    } catch (error) {
+        // Handle errors thrown by the axios call itself (network errors, etc.)
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.response?.data?.message || 'Error applying coupon. Please try again.',
+        });
+    }
+
+        }
     </script>
     

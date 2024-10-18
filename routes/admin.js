@@ -3,6 +3,7 @@ const router = express.Router();
 const adminController = require("../contorller/admin/adminController")
 const admin = require('../middleware/adminAuth')
 const offerController = require('../contorller/admin/offerController')
+const couponController = require('../contorller/admin/couponController')
 const path = require('path');
 const productImageUpload=require('../config/multer')
 const offer = require('../models/offerModel')
@@ -48,6 +49,10 @@ router.patch('/offers/edit',offerController.editOffer)
 router.patch('/offers/activate',offerController.activate)
 router.patch('/offers/deactivate',offerController.deactivate)
 
+router.get('/coupons',couponController.coupon);
+router.post('/coupons/add',couponController.addCoupon)
+router.patch('/coupons/edit/:id',couponController.editCoupon)
+router.delete('/coupons/delete/:couponId',couponController.deleteCoupon)
 
 
 module.exports = router;

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Management</title>
+    <link rel="stylesheet" href="/css/admin/category.css"> 
+    <link rel="stylesheet" href="/css/admin/main.css">
+    <link rel="stylesheet" href="/css/admin/coupons.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <%- include('partials/_sidebar') %>
+
+    <div class="main-content">
+        <%- include('partials/_header') %>
+
+        <h2>Coupon Management</h2>
+
+        <!-- Add Coupon Button -->
+        <button class="add-coupon-btn" onclick="openCouponModal()">Add Coupon</button>
+
+        <div class="coupon-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coupon Code</th>
+                        <th>Discount Type</th>
+                        <th>Discount Amount</th>
+                        <th>Min Amount</th>
+                        <th>Max Amount</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% coupons.forEach(function(coupon) { %>
+                    <tr>
+                        <td><%= coupon.couponCode %></td>
+                        <td><%= coupon.discountType %></td>
+                        <td><%= coupon.discountAmount %></td>
+                        <td><%= coupon.minAmount %></td>
+                        <td><%= coupon.maxAmount %></td>
+                        <td><%= new Date(coupon.startDate).toLocaleDateString() %></td>
+                        <td><%= new Date(coupon.endDate).toLocaleDateString() %></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="edit-btn-coupon" onclick="openEditCouponModal('<%= coupon._id %>', '<%= coupon.couponCode %>', '<%= coupon.discountType %>', '<%= coupon.discountAmount %>', '<%= coupon.minAmount %>', '<%= coupon.maxAmount %>', '<%= coupon.startDate %>', '<%= coupon.endDate %>')">Edit</button>
+                                <button class="delete-btn-coupon" onclick="deleteCoupon('<%= coupon._id %>')">Delete</button>
+                            </div>
+                        </td> 
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+       <!-- Add Coupon Modal -->
+        <div class="modal-coupon" id="couponModal">
+            <div class="modal-content-coupon">
+                <span class="close-coupon" onclick="closeModal()">&times;</span>
+                <h5 id="modalTitle">Add Coupon</h5>
+                <form id="couponForm">
+                    <input type="hidden" id="couponId" name="couponId">
+
+                    <label for="couponCode">Coupon Code:</label>
+                    <input type="text" id="couponCode" name="couponCode" required>
+                    <div class="error-message" id="couponCodeError"></div>
+
+                    <label for="discountType">Discount Type:</label>
+                    <select id="discountType" name="discountType" required>
+                        <option value="">Select...</option>
+                        <option value="Fixed Amount">Fixed Amount</option>
+                    </select>
+                    <div class="error-message" id="discountTypeError"></div>
+
+                    <label for="discountAmount">Discount Amount:</label>
+                    <input type="number" id="discountAmount" name="discountAmount" required min="0">
+                    <div class="error-message" id="discountAmountError"></div>
+
+                    <label for="minAmount">Minimum Amount:</label>
+                    <input type="number" id="minAmount" name="minAmount" required min="0">
+                    <div class="error-message" id="minAmountError"></div>
+
+                    <label for="maxAmount">Maximum Amount:</label>
+                    <input type="number" id="maxAmount" name="maxAmount" required min="0">
+                    <div class="error-message" id="maxAmountError"></div>
+
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                    <div class="error-message" id="startDateError"></div>
+
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                    <div class="error-message" id="endDateError"></div>
+
+                    <button type="submit" class="submit-btn">Save Coupon</button>
+                </form>
+            </div>
+        </div>
+
+
+
+        <!-- Modal for Editing Coupons -->
+        <div class="modal-coupon" id="editCouponModal" style="display:none;">
+            <div class="modal-content-coupon">
+                <span class="close-coupon" onclick="closeEditModal()">&times;</span>
+                <h5 id="editModalTitle">Edit Coupon</h5>
+                <form id="editCouponForm">
+                    <input type="hidden" id="editCouponId" name="editCouponId">
+
+                    <label for="editCouponCode">Coupon Code:</label>
+                    <input type="text" id="editCouponCode" name="editCouponCode" required>
+                    <div class="error-message" id="editCouponCodeError"></div>
+
+                    <label for="editDiscountType">Discount Type:</label>
+                    <select id="editDiscountType" name="editDiscountType" required>
+                        <option value="">Select...</option>
+                        <option value="Fixed Amount">Fixed Amount</option>
+                    </select>
+                    <div class="error-message" id="editDiscountTypeError"></div>
+
+                    <label for="editDiscountAmount">Discount Amount:</label>
+                    <input type="number" id="editDiscountAmount" name="editDiscountAmount" required min="0">
+                    <div class="error-message" id="editDiscountAmountError"></div>
+
+                    <label for="editMinAmount">Minimum Amount:</label>
+                    <input type="number" id="editMinAmount" name="editMinAmount" required min="0">
+                    <div class="error-message" id="editMinAmountError"></div>
+
+                    <label for="editMaxAmount">Maximum Amount:</label>
+                    <input type="number" id="editMaxAmount" name="editMaxAmount" required min="0">
+                    <div class="error-message" id="editMaxAmountError"></div>
+
+                    <label for="editStartDate">Start Date:</label>
+                    <input type="date" id="editStartDate" name="editStartDate" required>
+
+                    <label for="editEndDate">End Date:</label>
+                    <input type="date" id="editEndDate" name="editEndDate" required>
+                    <div class="error-message" id="editEndDateError"></div>
+
+                    <button type="submit" class="submit-btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/coupons?page=<%= currentPage - 1 %>&limit=10">Previous</a>
+            <% } %>
+            
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <% if (i === currentPage) { %>
+                    <span><%= i %></span> <!-- Current page -->
+                <% } else { %>
+                    <a href="/admin/coupons?page=<%= i %>&limit=10"><%= i %></a>
+                <% } %>
+            <% } %>
+        
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/coupons?page=<%= currentPage + 1 %>&limit=10">Next</a>
+            <% } %>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/js/admin/coupons.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+</html>

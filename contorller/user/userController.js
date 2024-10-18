@@ -283,6 +283,7 @@ const product_details = async (req, res) => {
           colors: product.colors,
           createdAt: product.createdAt,
           rating: product.rating,
+          isListed:product.isListed,
           category: product.categoryID ? product.categoryID.name : 'Unknown',
           offer: productOffer ? {
               discountedPrice: Math.round(product.price - (product.price * (productOffer.discountAmount / 100))),
@@ -301,7 +302,7 @@ const product_details = async (req, res) => {
 
       // Render the product detail page with the formatted product and related products
       res.render('user/product_detail', {
-          user: req.session.user || false,
+          user: req.session.user ?? false,
           product: formattedProduct,
           relatedProducts
       });
@@ -311,7 +312,6 @@ const product_details = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 };
-
 
 
 

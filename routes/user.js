@@ -69,5 +69,7 @@ router.post("/update-password",userController.newpassVerify)
 router.patch('/resetPassword/:userId',userController.resetPassword)
 
 
+router.post('/cart/applyCoupon',cartController.applyCoupon)
+
 
 module.exports = router;
