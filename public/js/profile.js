@@ -2,47 +2,7 @@
         // order----------------------------------------------------------------------------------------------------
         
         
-//         document.addEventListener('DOMContentLoaded', function () {
-//     const cancelOrderButtons = document.querySelectorAll('.cancelOrder');
 
-//     cancelOrderButtons.forEach(button => {
-//         button.addEventListener('click', function () {
-//             const orderId = this.getAttribute('data-id');
-
-//             // SweetAlert confirmation
-//             Swal.fire({
-//                 title: 'Are you sure?',
-//                 text: "Do you really want to cancel this order?",
-//                 icon: 'warning',
-//                 showCancelButton: true,
-//                 confirmButtonColor: '#d33',
-//                 cancelButtonColor: '#3085d6',
-//                 confirmButtonText: 'Yes, cancel it!'
-//             }).then((result) => {
-//                 if (result.isConfirmed) {
-//                     // Send cancel order request using Axios
-//                     axios.post(`/order/cancel/${orderId}`)
-//                         .then(response => {
-//                             Swal.fire(
-//                                 'Cancelled!',
-//                                 response.data.message,
-//                                 'success'
-//                             ).then(() => {
-//                                 location.reload(); // Reload to see updated orders
-//                             });
-//                         })
-//                         .catch(error => {
-//                             Swal.fire(
-//                                 'Error!',
-//                                 error.response.data.message || 'Something went wrong!',
-//                                 'error'
-//                             );
-//                         });
-//                 }
-//             });
-//         });
-//     });
-// });
 
 
 document.addEventListener('DOMContentLoaded', function () {

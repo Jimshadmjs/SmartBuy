@@ -46,7 +46,105 @@
         #reason {
             color: black;
         }
+
+
+
+
+        .custom-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 700px;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-modal-content {
+    background-color: rgb(14, 14, 14);
+    padding: 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+
+/* Close button */
+.custom-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Table layout for order details */
+.order-details-table, .order-total-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.order-details-table th, .order-details-table td,
+.order-total-table th, .order-total-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Product container */
+.products-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.col-md-4 {
+    flex: 1;
+    max-width: 30%;
+    min-width: 250px;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: rgb(14, 14, 14);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 10px;
+}
+
+.card-title {
+    font-size: 1.1em;
+    margin: 0;
+}
+
+.card-text {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+
     </style>
+    
 </head>
 <body>
     <!-- Sidebar -->
@@ -103,6 +201,9 @@
                                 <% } %>
                             </div>
                         </td> 
+                        <td>
+                            <button class="btn btn-primary viewOrder" data-id="<%= order._id %>">View</button>
+                        </td>
                     </tr>
                     <% }); %>
                 </tbody>
@@ -135,6 +236,45 @@
         </div>
         
     </div>
+
+
+
+
+
+    <!-- Order Details Modal -->
+<div id="orderDetailModal" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+        <span id="closeModal" class="custom-close">&times;</span>
+        <h2>Order Details</h2>
+        <table class="order-details-table">
+            <tr>
+                <th>Order Date</th>
+                <td><span id="orderedDate"></span> <span id="orderTime"></span></td>
+            </tr>
+            <tr>
+                <th>Order Status</th>
+                <td><span id="orderStatus"></span></td>
+            </tr>
+            <tr>
+                <th>Shipping Address</th>
+                <td><span id="shippingAddress"></span></td>
+            </tr>
+        </table>
+
+        <h3>Products Ordered</h3>
+        <div id="orderedProducts" class="products-container"></div>
+
+        <table class="order-total-table">
+            <tr>
+                <th>Total Amount</th>
+                <td><span id="totalAmount"></span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+
 
     <script> 
         function changeOrderStatus(orderId, newStatus) {
@@ -177,6 +317,77 @@
                     alert('Failed to approve cancellation. Please try again.');
                 });
         }
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const viewOrderButtons = document.querySelectorAll('.viewOrder');
+    const orderModal = document.getElementById('orderDetailModal');
+    const closeModalButton = document.getElementById('closeModal');
+
+    viewOrderButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const orderId = this.getAttribute('data-id');
+
+            // Fetch order details using Axios
+            axios.get(`/order/details/${orderId}`)
+                .then(response => {
+                    const order = response.data;
+
+                    // Populate the modal with order details
+                    const orderedDate = new Date(order.orderedDate);
+                    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                    document.getElementById('orderedDate').innerText = orderedDate.toLocaleDateString('en-IN', options);
+                    document.getElementById('orderTime').innerText = orderedDate.toLocaleTimeString();
+                    document.getElementById('orderStatus').innerText = order.orderStatus;
+                    document.getElementById('shippingAddress').innerText = 
+                        `${order.shippingAddress.fullname}, ${order.shippingAddress.address}, ${order.shippingAddress.pincode}`;
+
+                    const productsContainer = document.getElementById('orderedProducts');
+                    productsContainer.innerHTML = ''; // Clear previous content
+
+                    order.items.forEach(item => {
+                        productsContainer.innerHTML += `
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <img src="/${item.productID.images[0]}" alt="${item.productID.name}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${item.productID.name}</h5>
+                                        <p class="card-text">Price: ₹${item.productID.price}</p>
+                                        <p class="card-text">Quantity: ${item.quantity}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    document.getElementById('totalAmount').innerText = `₹${order.totalAmount}`;
+
+                    // Show the modal
+                    orderModal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching order details:', error);
+                    alert('An error occurred while fetching order details.');
+                });
+        });
+    });
+
+    // Close the modal when clicking the close button or outside the modal
+    closeModalButton.addEventListener('click', () => {
+        orderModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === orderModal) {
+            orderModal.style.display = 'none';
+        }
+    });
+});
+
+
+
+
     </script>
 </body>
 </html>

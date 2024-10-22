@@ -488,6 +488,27 @@ const approveCancellation = async (req, res) => {
 };
 
 
+// to view order details
+const orderDetails = async (req, res) => {
+    try {
+        const orderId = req.params.orderId
+        const order = await orderSchema.findById(orderId)
+            .populate('userID', 'username') // Populate username from user collection
+            .populate('items.productID', 'name price images'); // Populate product details
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'An error occurred while fetching order details' });
+    }
+};
+
+
+
 
 module.exports={
     login,
@@ -507,5 +528,6 @@ module.exports={
     logout,
     order,
     changeStatus,
-    approveCancellation
+    approveCancellation,
+    orderDetails
 }

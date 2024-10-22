@@ -183,7 +183,7 @@
 						</div>
 						<div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
 							<% if (user) { %>
-								<button class="btn btn-outline-danger btn-sm">
+								<button class="btn btn-outline-danger btn-sm add-to-wishlist" data-id="<%= product._id %>" onclick="addToWishlist('<%= product._id %>')">
 									<i class="bi bi-heart"></i> Wishlist
 								</button>
 								<button class="btn btn-outline-primary btn-sm add-to-cart" data-image="<%= product.images[0] %>" data-id="<%= product._id %>" data-name="<%= product.name %>" data-price="<%= product.offer.hasOffer ? product.offer.discountedPrice : product.price %>">
@@ -365,6 +365,8 @@
 	</script>
 <!--===============================================================================================-->
 	<script src="js/main.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script src="/js/home.js"></script>
@@ -373,3 +375,29 @@
 	</script>
 </body>
 </html>
+
+<script>
+	function addToWishlist(productId) {
+		console.log("uhs");
+    axios.post(`/wishlist/add/${productId}`)
+	
+        .then(response => {
+            Swal.fire({
+                title: 'Success!',
+                text: response.data.message || 'Added to wishlist!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Error adding to wishlist. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            console.error('Error:', error);
+        });
+}
+
+</script>

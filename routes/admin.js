@@ -4,6 +4,7 @@ const adminController = require("../contorller/admin/adminController")
 const admin = require('../middleware/adminAuth')
 const offerController = require('../contorller/admin/offerController')
 const couponController = require('../contorller/admin/couponController')
+const salesCotroller = require('../contorller/admin/salesController')
 const path = require('path');
 const productImageUpload=require('../config/multer')
 const offer = require('../models/offerModel')
@@ -36,6 +37,7 @@ router.post('/products/:id',adminController.toggle_list)
 router.get('/orders',adminController.order)
 router.put('/orders/:orderId/status',adminController.changeStatus)
 router.post('/orders/:orderId/approve-cancellation', adminController.approveCancellation)
+router.get('/order/details/:orderId',adminController.orderDetails)
 
 
 router.get('/logout',adminController.logout)
@@ -53,6 +55,11 @@ router.get('/coupons',couponController.coupon);
 router.post('/coupons/add',couponController.addCoupon)
 router.patch('/coupons/edit/:id',couponController.editCoupon)
 router.delete('/coupons/delete/:couponId',couponController.deleteCoupon)
+
+router.get('/sales-report',salesCotroller.salesReport)
+router.post('/generateReport',salesCotroller.generate)
+router.get('/sales-report/download/pdf',salesCotroller.pdf)
+router.get('/sales-report/download/excel',salesCotroller.excelReport)
 
 
 module.exports = router;

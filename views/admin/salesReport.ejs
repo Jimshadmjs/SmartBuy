@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Report</title>
+    <link rel="stylesheet" href="/css/admin/main.css">
+    <link rel="stylesheet" href="/css/admin/sales-report.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #1e1e1e, #333);
+        color: #ffffff;
+    }
+
+    .main-content {
+        padding: 30px 50px;
+    }
+
+    h2 {
+        font-weight: 500;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+
+    .filter-inputs {
+        display: flex;
+        gap: 10px;
+    }
+
+    input[type="date"],
+    select {
+        padding: 12px;
+        width: 200px;
+        border-radius: 5px;
+        border: 1px solid #444;
+        background-color: #2a2a2a;
+        color: #fff;
+    }
+
+    .filter-btn {
+        padding: 12px 30px;
+        background-color: #6d60e4;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .filter-btn:hover {
+        background-color: #533cd5;
+    }
+
+    /* Sales Report Section */
+    .sales-report-section {
+        background-color: #292929;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th,
+    td {
+        padding: 15px;
+        border-bottom: 1px solid #444;
+    }
+
+    th {
+        background-color: #444;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    tr:hover {
+        background-color: #333;
+    }
+
+    /* Summary Section */
+    .summary-section {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 25px;
+        gap: 15px;
+    }
+
+    .summary-card {
+        background-color: #292929;
+        padding: 20px;
+        width: 30%;
+        border-radius: 8px;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+
+    .summary-card h4 {
+        color: #6d60e4;
+        margin-bottom: 10px;
+    }
+
+    .summary-card p {
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    /* Download Buttons */
+    .download-btn {
+        padding: 12px 20px;
+        margin-top: 20px;
+        background-color: #ff4757;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .download-btn:hover {
+        background-color: #e63946;
+    }
+</style>
+
+<body>
+    <%- include('partials/_sidebar') %>
+
+    <div class="main-content">
+        <%- include('partials/_header') %>
+
+        <h2>Sales Report</h2>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-inputs" id="dateInputs" style="display: none;">
+                <div>
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate">
+                </div>
+                <div>
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate">
+                </div>
+            </div>
+        
+            <div>
+                <label for="frequency">Frequency:</label>
+                <select id="frequency" name="frequency" onchange="toggleDateInputs()">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+            </div>
+        
+            <button class="filter-btn" onclick="generateReport()">Generate Report</button>
+        </div>
+        
+
+        <!-- Sales Report Section -->
+        <div class="sales-report-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Total Amount</th>
+                        <th>Coupon Discount</th>
+                        <th>Offer Discount</th>
+                        <th>Biller Name</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody">
+                    <!-- Dynamic Report Data -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-card">
+                <h4>Total Sales</h4>
+                <p id="totalSalesCount">0</p>
+            </div>
+            <div class="summary-card">
+                <h4>Total Amount</h4>
+                <p id="totalOrderAmount">₹0.00</p>
+            </div>
+            <div class="summary-card">
+                <h4>Total Discount</h4>
+                <p id="totalDiscount">₹0.00</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="download-btn" onclick="downloadReport('pdf')">Download PDF</button>
+            <button class="download-btn" onclick="downloadReport('excel')">Download Excel</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/admin/sales-report.js"></script>
+</body>
+<script>
+    async function generateReport() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const frequency = document.getElementById('frequency').value;
+
+        try {
+            const response = await axios.post('/admin/generateReport', {
+            startDate,
+            endDate,
+            frequency
+         });
+
+            const data = response.data;
+            console.log(data);
+            renderReport(data);
+        } catch (error) {
+            console.error('Error generating report:', error);
+        }
+    }
+
+    function renderReport(data) {
+        const reportBody = document.getElementById('reportBody');
+        const totalSalesCount = document.getElementById('totalSalesCount');
+        const totalOrderAmount = document.getElementById('totalOrderAmount');
+        const totalDiscount = document.getElementById('totalDiscount');
+
+        reportBody.innerHTML = data.orders.map(order => `
+            <tr>
+                <td>${order._id}</td>
+                <td>₹${order.totalAmount}</td>
+                <td>₹${order.couponDiscount || '0.00'}</td>
+                <td>₹${order.offerDiscount || '0.00'}</td>
+                <td>${order.shippingAddress.fullname || 'N/A'}</td>
+                <td>${new Date(order.createdAt).toLocaleDateString('en-IN')}</td>
+
+            </tr>
+        `).join('');
+
+        totalSalesCount.textContent = data.totalSales;
+        totalOrderAmount.textContent = `₹${data.totalAmount}`;
+        totalDiscount.textContent = `₹${data.totalDiscount}`;
+    }
+
+    async function downloadReport(format) {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const frequency = document.getElementById('frequency').value;
+
+    try {
+        const response = await axios.get(`/admin/sales-report/download/${format}`, {
+            params: { startDate, endDate, frequency },
+            responseType: 'blob' // Important to set for file downloads
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `sales-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove(); // Clean up the link element
+    } catch (error) {
+        console.error('Error downloading report:', error);
+    }
+}
+
+
+
+    function toggleDateInputs() {
+    const frequency = document.getElementById('frequency').value;
+    const dateInputs = document.getElementById('dateInputs');
+
+    if (frequency === 'custom') {
+        dateInputs.style.display = 'flex'; // Show date inputs
+    } else {
+        dateInputs.style.display = 'none'; // Hide date inputs
+    }
+}
+
+</script>
+
+</html>

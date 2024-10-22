@@ -6,6 +6,7 @@ const user = require('../middleware/userAuth')
 const userController = require("../contorller/user/userController")
 const profileController = require('../contorller/user/profileController')
 const cartController = require('../contorller/user/cartController')
+const wishlistController = require('../contorller/user/wishlistController')
 
 
 router.get('/logout',userController.logout)
@@ -70,6 +71,10 @@ router.patch('/resetPassword/:userId',userController.resetPassword)
 
 
 router.post('/cart/applyCoupon',cartController.applyCoupon)
+
+router.post('/wishlist/add/:productId',wishlistController.addWishlist)
+router.delete('/wishlist/remove',wishlistController.removeFromWishlist)
+
 
 
 module.exports = router;

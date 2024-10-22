@@ -6,6 +6,8 @@ const categorySchema = require('../../models/category')
 const addressSchema = require('../../models/addressModel')
 const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
+const offerSchema = require('../../models/offerModel')
+const wishlistSchema = require('../../models/wishlistModel')
 const mongoose = require('mongoose');
 require("dotenv").config()
 
@@ -13,29 +15,71 @@ require("dotenv").config()
 
 
 // to render profile
-const profile = async (req,res)=>{
-
+const profile = async (req, res) => {
     try {
-        
-        const userId = req.session.user._id; 
-        
-        const user = await userSchema.findById(userId)
-        
-        if (!user) {
-            return res.redirect('/');
-        }
+        const userId = req.session.user._id;
+
+        const user = await userSchema.findById(userId);
+        if (!user) return res.redirect('/');
+
         const addresses = await addressSchema.find({ user: userId });
-        const orders = await orderSchema.find({ userID: userId }).sort({ createdAt: -1 }).populate('items.productID');
-        console.log(orders.items);
-        
-        
-        res.status(200).render('user/profile',{user,addresses,orders})
+
+        const wishlist = await wishlistSchema.findOne({ userID: userId }).populate('items.productID') || { items: [] };
+        const productIds = wishlist.items.map(item => item.productID._id);
+        const offers = await offerSchema.find({ selectedProducts: { $in: productIds } });
+
+
+        const offerMap = offers.reduce((map, offer) => {
+            offer.selectedProducts.forEach(productId => {
+                map[productId] = offer; 
+            });
+            return map;
+        }, {});
+
+
+        wishlist.items.forEach(item => {
+            const productId = item.productID._id.toString();
+            item.productID.offer = offerMap[productId] || null; 
+            
+
+            if (item.productID.offer) {
+                const regularPrice = item.productID.price;
+                const discountedPrice = Math.round(regularPrice - (regularPrice * (item.productID.offer.discountAmount / 100)));
+                item.productID.bestOfferPrice = discountedPrice; 
+            } else {
+                item.productID.bestOfferPrice = item.productID.price; 
+            }
+        });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; 
+        const skip = (page - 1) * limit;
+
+        const totalOrders = await orderSchema.countDocuments({ userID: userId });
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        const orders = await orderSchema
+            .find({ userID: userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('items.productID');
+
+        res.status(200).render('user/profile', { 
+            user, 
+            addresses, 
+            orders, 
+            currentPage: page, 
+            totalPages,
+            wishlist
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Failed to fetch user details' });
     }
+};
 
-}
+
 
 
 // to add new address

@@ -54,7 +54,12 @@ const orderSchema = new mongoose.Schema({
         default: Date.now 
     },
     cancellationRequested: { type: Boolean, default: false }, 
-    cancellationReason: { type: String, default: null }
+    cancellationReason: { type: String, default: null },
+    couponDiscount:{type:Number},
+    offerDiscount: { type: Number, default: 0 },
+    couponDiscount: { type: Number, default: 0 }
+
+
 },{timestamps:true});
 
 module.exports = mongoose.model('Order', orderSchema);

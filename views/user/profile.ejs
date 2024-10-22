@@ -89,6 +89,11 @@
 .product-card .card-body {
     text-align: center; /* Center text within the card */
 }
+.product-image-wishlist {
+    width: 100%; /* Ensure the image takes up the full width of its container */
+    height: 220px; /* Set a fixed height */
+    object-fit: fill; /* This will ensure the image covers the area without stretching */
+}
 
 </style>
     
@@ -243,7 +248,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <form id="addressForm">
-                                        <input type="hidden" id="addressId"> <!-- Hidden input to store address ID for editing -->
+                                        <input type="hidden" id="addressId">    
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
                                                 <label for="fullName">Full Name</label>
@@ -367,6 +372,31 @@
                     <% } %>
 
 
+
+                    <!-- Pagination Controls -->
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
+                                </li>
+                            <% } %>
+
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage + 1 %>">Next</a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
+
+
                     <!-- Cancellation Reason Modal -->
                     <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -430,20 +460,61 @@
                             </div>
                         </div>
                     </div>
-                    
-                    
-                    
-
-
                 </div>
                 
                 
 
                 <div id="wishlist" class="section hidden">
                     <h2>Wishlist</h2>
-                    <p>No items in your wishlist.</p>
-                    <!-- Wishlist items would be populated here -->
+                    <% if (wishlist && wishlist.items.length > 0) { %>
+                        <div class="row">
+                            <% wishlist.items.forEach(item => { 
+                                const product = item.productID; %>
+                                <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 wishlist-item" data-product-id="<%= product._id %>">
+                                    <div class="card h-100">
+                                        <a href="/product_details/<%= product._id %>">
+                                            <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image-wishlist" alt="Product Image">
+                                        </a>
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href="/product_details/<%= product._id %>" class="text-dark">
+                                                    <strong><%= product.name %> <br></strong>
+                                                    <% if (product.categoryID) { %>
+                                                        <%= product.categoryID.name %>
+                                                    <% } %>
+                                                </a>
+                                            </h5>
+                                            <p class="card-text">
+                                                <% if (product.offer) { %>
+                                                    <span style="text-decoration: line-through; color: red;">₹<%= product.price %></span>
+                                                    <span style="color: green;">₹<%= product.bestOfferPrice %></span>
+                                                <% } else { %>
+                                                    <span>₹<%= product.price %></span>
+                                                <% } %>
+                                            </p>
+                                        </div>
+                                        <div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
+                                            <button class="btn btn-outline-danger btn-sm remove-wishlist-btn">
+                                                <i class="bi bi-heart"></i> Remove from Wishlist
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <p>No items in your wishlist.</p>
+                    <% } %>
                 </div>
+                
+                
+                
+                
+                
+                
+
+                
+
             </div>
         </div>
     </div>
@@ -634,7 +705,49 @@ $(document).ready(function() {
 
 </script>
 
+<script>
+    // Add event listener to remove item buttons
+    document.querySelectorAll('.remove-wishlist-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const productID = e.target.closest('.wishlist-item').dataset.productId;
 
+        try {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to remove this item from your wishlist?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!',
+            });
+
+            if (result.isConfirmed) {
+                const response = await axios.delete('/wishlist/remove', {
+                    data: { userID: '<%= user._id %>', productID } // Send userID and productID
+                });
+
+                if (response.status === 200) {
+                    Swal.fire(
+                        'Removed!',
+                        'The item has been removed from your wishlist.',
+                        'success'
+                    );
+                    // Remove the item from the DOM
+                    e.target.closest('.wishlist-item').remove();
+                } else {
+                    Swal.fire('Oops!', response.data.message, 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Error removing item from wishlist:', error);
+            Swal.fire('Error!', 'An error occurred while removing the item.', 'error');
+        }
+    });
+});
+
+
+</script>
 
 
 

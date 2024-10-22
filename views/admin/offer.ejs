@@ -81,7 +81,7 @@
         </div>
         
 
-        <!-- Modal for Adding/Editing Offers -->
+        <!-- Modal for Adding Offers -->
         <div class="modal-offer" id="offerModal">
             <div class="modal-content-offer">
                 <span class="close-offer" onclick="closeModal()">&times;</span>
@@ -114,13 +114,11 @@
             
                     <div id="productSelectContainer" required>
                         <label for="productSelect">Select Products:</label>
-                        <!-- Dynamically generated checkboxes will appear here -->
                     </div>
                     <div class="error-message" id="productSelectError"></div>
             
                     <div id="categorySelectContainer" style="display:none;">
                         <label for="categorySelect">Select Category:</label>
-                        <!-- Dynamically generated radio buttons will appear here -->
                     </div>
                     <div class="error-message" id="categorySelectError"></div>
             
@@ -164,13 +162,11 @@
 
                     <div id="editProductSelectContainer" required>
                         <label for="editProductSelect">Select Products:</label>
-                        <!-- Dynamically generated checkboxes will appear here -->
                     </div>
                     <div class="error-message" id="editProductSelectError"></div>
 
                     <div id="editCategorySelectContainer" style="display:none;">
                         <label for="editCategorySelect">Select Category:</label>
-                        <!-- Dynamically generated radio buttons will appear here -->
                     </div>
                     <div class="error-message" id="editCategorySelectError"></div>
 
@@ -189,7 +185,7 @@
             
             <% for (let i = 1; i <= totalPages; i++) { %>
                 <% if (i === currentPage) { %>
-                    <span><%= i %></span> <!-- Current page -->
+                    <span><%= i %></span> 
                 <% } else { %>
                     <a href="/admin/offer?page=<%= i %>&limit=10"><%= i %></a>
                 <% } %>

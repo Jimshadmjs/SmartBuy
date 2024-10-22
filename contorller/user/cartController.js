@@ -366,6 +366,7 @@ const placeOrder =  async (req, res) => {
 
         const outOfStockProducts = [];
         const orderItems = [];
+        const originalPrices = []; // Store original prices for discounts
 
         // Check product stock
         for (const item of cart.items) {
@@ -373,6 +374,10 @@ const placeOrder =  async (req, res) => {
             if (product.stock < item.quantity) {
                 outOfStockProducts.push(product.name);
             } else {
+                // Capture the original price before applying any discounts
+                originalPrices.push( product.price * item.quantity );
+                console.log(product.price);
+                
                 product.stock -= item.quantity;
                 await product.save();
                 orderItems.push({ productID: product._id, quantity: item.quantity, price: item.price });
@@ -383,8 +388,16 @@ const placeOrder =  async (req, res) => {
             return res.status(400).json({ message: `The following products are out of stock: ${outOfStockProducts.join(', ')}` });
         }
 
-        const totalAmount = cart.totalPrice + 50
+        const totalAmount = cart.totalPrice + 50;
+        console.log(originalPrices);
+        
+        let sum = originalPrices.reduce((a,c)=> a+c,0)
+console.log(sum);
 
+         sum -= cart.totalPrice
+         console.log(sum);
+         
+        
         // Create a new order
         const newOrder = new orderSchema({
             userID: userId,
@@ -397,17 +410,23 @@ const placeOrder =  async (req, res) => {
                 phone: selectedAddress ? phone : req.body.phone
             },
             paymentMethod: paymentMethod === 'bankTransfer' ? 'UPI' : 'COD',
-            orderStatus: 'Pending'
+            orderStatus: 'Pending',
+            offerDiscount: sum  // Store original prices for offers
         });
-        
+
+        if(req.session.couponDiscound){
+            newOrder.couponDiscount = req.session.couponDiscound
+            newOrder.offerDiscount -= req.session.couponDiscound
+        }
+
         // Handle payment methods
         if (paymentMethod === 'bankTransfer') {
             const razorpayOrder = await razorpay.orders.create({
-                amount: totalAmount * 100, // Convert to paise
+                amount: totalAmount * 100,
                 currency: 'INR',
                 receipt: `receipt_${newOrder._id}`
             });
-            newOrder.razorpayOrderId = razorpayOrder.id; // Store Razorpay order ID
+            newOrder.razorpayOrderId = razorpayOrder.id;
         }
 
         await newOrder.save();
@@ -420,6 +439,7 @@ const placeOrder =  async (req, res) => {
         res.status(500).send('An error occurred while processing your order');
     }
 }
+
 
 
 //to controll rozarpay
@@ -514,6 +534,8 @@ const applyCoupon = async (req, res) => {
         const newTotal = Math.max(total, 0);
         
         await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
+
+        req.session.couponDiscound = coupon.discountAmount
 
         coupon.usedBy.push(userId);
         await coupon.save();
