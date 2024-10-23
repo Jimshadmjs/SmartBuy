@@ -7,6 +7,7 @@ const userController = require("../contorller/user/userController")
 const profileController = require('../contorller/user/profileController')
 const cartController = require('../contorller/user/cartController')
 const wishlistController = require('../contorller/user/wishlistController')
+const wallerController = require('../contorller/user/walletController')
 
 
 router.get('/logout',userController.logout)
@@ -49,8 +50,14 @@ router.get('/order/confirmation/:orderId',cartController.conformationOrde)
 
 
 router.post('/order/cancel/:orderId',profileController.cancelOrder)
+router.post('/return-order/:orderId',profileController.returnOrder)
 router.get('/order/details/:orderId',profileController.orderDetails)
 
+
+// razorpay
+router.post('/payment/failure/:id',cartController.handleRazorpayPayment)
+router.post('/payment/success/:orderId',cartController.paymentSucess);
+router.post('/retryPayment/:orderId', cartController.retryPayment)
 
 
 // meybe helpfull in futer
@@ -72,9 +79,13 @@ router.patch('/resetPassword/:userId',userController.resetPassword)
 
 router.post('/cart/applyCoupon',cartController.applyCoupon)
 
+
+router.get('/wishlist',wishlistController.wishlist)
 router.post('/wishlist/add/:productId',wishlistController.addWishlist)
 router.delete('/wishlist/remove',wishlistController.removeFromWishlist)
 
 
+
+router.post('/wallet/add-funds',wallerController.add_fund)
 
 module.exports = router;

@@ -19,7 +19,6 @@ function clearModalFields() {
 document.getElementById('couponForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    // Clear previous error messages
     clearErrorMessages();
 
     const couponData = {
@@ -43,7 +42,6 @@ document.getElementById('couponForm').addEventListener('submit', async function 
 
     try {
         const response = await axios.post('/admin/coupons/add', couponData);
-        // SweetAlert for success
         await Swal.fire({
             title: 'Success!',
             text: response.data.message,
@@ -53,7 +51,6 @@ document.getElementById('couponForm').addEventListener('submit', async function 
         location.reload()
         closeModal();
     } catch (error) {
-        // SweetAlert for error
         await Swal.fire({
             title: 'Error!',
             text: error.response.data.message || 'Error adding coupon',
@@ -63,40 +60,39 @@ document.getElementById('couponForm').addEventListener('submit', async function 
     }
 });
 
-// Validate coupon data
 function validateCouponData(data) {
     const errors = [];
     const today = new Date().toISOString().split('T')[0];
 
-    // Validate discount amount
     if (data.discountAmount < 0) {
         errors.push({ field: 'discountAmountError', message: 'Discount amount cannot be negative.' });
     }
 
-    // Validate minimum amount
     if (data.minAmount < 0) {
         errors.push({ field: 'minAmountError', message: 'Minimum amount cannot be negative.' });
     }
 
-    // Validate maximum amount
     if (data.maxAmount < 0) {
         errors.push({ field: 'maxAmountError', message: 'Maximum amount cannot be negative.' });
     }
 
-    // Validate start date
     if (data.startDate < today) {
         errors.push({ field: 'startDateError', message: 'Start date cannot be in the past.' });
     }
 
-    // Validate end date
     if (data.endDate < data.startDate) {
         errors.push({ field: 'endDateError', message: 'End date cannot be before start date.' });
+    }
+    if (data.minAmount < data.discountAmount) {
+        errors.push({ field: 'minAmountError', message: 'Minimum amount cannot be less than the discount amount.' });
+    }
+    if (data.maxAmount < data.minAmount) {
+        errors.push({ field: 'maxAmountError', message: 'Maximum amount cannot be less than the minimum amount.' });
     }
 
     return errors;
 }
 
-// Clear error messages
 function clearErrorMessages() {
     document.getElementById('couponCodeError').innerText = '';
     document.getElementById('discountTypeError').innerText = '';
@@ -105,6 +101,46 @@ function clearErrorMessages() {
     document.getElementById('maxAmountError').innerText = '';
     document.getElementById('startDateError').innerText = '';
     document.getElementById('endDateError').innerText = '';
+}
+
+
+
+
+
+// edit coupon
+function validateEditCouponData(data) {
+    const errors = [];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (data.discountAmount < 0) {
+        errors.push({ field: 'editDiscountAmountError', message: 'Discount amount cannot be negative.' });
+    }
+
+    if (data.minAmount < 0) {
+        errors.push({ field: 'editMinAmountError', message: 'Minimum amount cannot be negative.' });
+    }
+
+    if (data.maxAmount < 0) {
+        errors.push({ field: 'editMaxAmountError', message: 'Maximum amount cannot be negative.' });
+    }
+
+    if (data.startDate < today) {
+        errors.push({ field: 'editStartDateError', message: 'Start date cannot be in the past.' });
+    }
+
+    if (data.endDate < data.startDate) {
+        errors.push({ field: 'editEndDateError', message: 'End date cannot be before start date.' });
+    }
+
+    if (data.minAmount < data.discountAmount) {
+        errors.push({ field: 'editMinAmountError', message: 'Minimum amount cannot be less than the discount amount.' });
+    }
+
+    if (data.maxAmount < data.minAmount) {
+        errors.push({ field: 'editMaxAmountError', message: 'Maximum amount cannot be less than the minimum amount.' });
+    }
+
+    return errors;
 }
 
 
@@ -160,9 +196,13 @@ document.getElementById('editCouponForm').addEventListener('submit', async funct
         endDate: document.getElementById('editEndDate').value,
     };
 
-    const validationErrors = validateCouponData(couponData);
+    const validationErrors = validateEditCouponData(couponData);
+    console.log(validationErrors);
+    
     if (validationErrors.length > 0) {
         validationErrors.forEach(error => {
+            console.log(document.getElementById(error.field));
+            
             document.getElementById(error.field).innerText = error.message;
         });
         return;
@@ -203,7 +243,6 @@ function clearEditErrorMessages() {
 
 // Function to delete a coupon
 async function deleteCoupon(couponId) {
-    // SweetAlert for confirmation
     const { value: confirmed } = await Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",

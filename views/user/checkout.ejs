@@ -322,7 +322,7 @@
         }
     
         document.getElementById('checkoutForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
     
             // Validate form
             if (validateForm()) {
@@ -345,59 +345,83 @@
     
                 // Submit the form via Axios
                 axios.post(`/checkout/submit/<%= user._id %>`, requestBody)
-                    .then(response => {
-                        const { orderId, razorpayOrderId } = response.data;
-    
-                        if (razorpayOrderId) {
-                            // Proceed to Razorpay payment
-                            const options = {
-                                key: 'rzp_test_gFsEtsAPkYQ4Fd', // Replace with your Razorpay test key
-                                amount: response.data.totalAmount * 100, // amount in paise
-                                currency: 'INR',
-                                name: 'Your Company Name',
-                                description: 'Test Transaction',
-                                order_id: razorpayOrderId,
-                                handler: function(paymentResponse) {
-                                    alert('Payment successful! Payment ID: ' + paymentResponse.razorpay_payment_id);
-                                    // Redirect to order confirmation page
-                                    window.location.href = `/order/confirmation/${orderId}`;
-                                },
-                                prefill: {
-                                    name: fullName,
-                                    email: 'email@example.com', // Add user's email if available
-                                    contact: phone
-                                },
-                                theme: {
-                                    color: '#F37254'
-                                }
-                            };
-    
-                            const rzp1 = new Razorpay(options);
-                            rzp1.open();
-                        } else {
-                            // For COD, redirect to order confirmation directly
-                            window.location.href = `/order/confirmation/${orderId}`;
-                        }
-                    })
-                    .catch(error => {
-                        if (error.response && error.response.data.message) {
-                            // Show SweetAlert if there are out-of-stock products
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Out of Stock',
-                                text: error.response.data.message,
-                            });
-                        } else {
-                            // Handle any other error
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'An error occurred while processing your order.',
-                            });
-                        }
+    .then(response => {
+        const { orderId, razorpayOrderId, totalAmount } = response.data;
+
+        if (paymentMethod === 'bankTransfer' && razorpayOrderId) {
+           
+            const options = {
+                key: 'rzp_test_gFsEtsAPkYQ4Fd', 
+                amount: totalAmount * 100,
+                currency: 'INR',
+                name: 'SmartBuy',
+                description: 'Test Transaction',
+                order_id: razorpayOrderId,
+                handler: function (paymentResponse) {
+                    // Payment successful, update backend
+                    axios.post(`/payment/success/${orderId}`, {
+                        paymentId: paymentResponse.razorpay_payment_id
+                    }).then(() => {
+                        alert('Payment successful! Payment ID: ' + paymentResponse.razorpay_payment_id);
+                        window.location.href = `/order/confirmation/${orderId}`;
+                    }).catch(err => {
+                        console.error('Error updating payment status:', err);
                     });
-            }
-        });
+                },
+                prefill: {
+                    name: fullName,
+                    email: 'email@example.com', 
+                    contact: phone
+                },
+                theme: {
+                    color: '#F37254'
+                }
+            };
+
+            const rzp1 = new Razorpay(options);
+
+            
+            rzp1.on('payment.failed', function (response) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: 'Your payment failed. Please try again.',
+                });
+
+                // Update backend on payment failure
+                axios.post(`/payment/failure/${orderId}`, {
+                    paymentId: response.error.metadata.payment_id
+                }).then(() => {
+                    window.location.href = '/profile';
+                }).catch(err => {
+                    console.error('Error logging payment failure:', err);
+                });
+            });
+
+            rzp1.open();
+        } else {
+            // For COD, redirect to order confirmation directly
+            window.location.href = `/order/confirmation/${orderId}`;
+        }
+    })
+    .catch(error => {
+        if (error.response && error.response.data.message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Out of Stock',
+                text: error.response.data.message,
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while processing your order.',
+            });
+        }
+
+    });
+
+}})
     </script>
     
 

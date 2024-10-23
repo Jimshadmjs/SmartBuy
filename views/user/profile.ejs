@@ -94,6 +94,17 @@
     height: 220px; /* Set a fixed height */
     object-fit: fill; /* This will ensure the image covers the area without stretching */
 }
+.wallet-balance {
+    background-color: #f8f9fa; /* Light background for contrast */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Some padding */
+    text-align: center; /* Center text */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.wallet-actions button {
+    margin-right: 10px; /* Spacing between buttons */
+}
 
 </style>
     
@@ -125,8 +136,8 @@
                         <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#orders">
                             <i class="fas fa-box"></i> Orders
                         </a>
-                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#wishlist">
-                            <i class="fas fa-heart"></i> Wishlist
+                        <a class="list-group-item list-group-item-action section-toggle" href="#" data-target="#wallet">
+                            <i class="fas fa-wallet"></i> Wallet
                         </a>
                     </div>
             </div>
@@ -353,15 +364,34 @@
                                     </div>
                                 </td>
                                 <td>₹<%= order.totalAmount %></td>
-                                <td><%= order.orderStatus %></td>
-                                <td>
-                                    <button class="btn btn-info btn-sm viewOrder" data-id="<%= order._id %>">View</button>
-                                    <% if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled') { %>
-                                        <button class="btn btn-danger btn-sm cancelOrder" data-id="<%= order._id %>">Cancel Order</button>
-                                    <% } else if (order.orderStatus === 'Delivered') { %>
-                                        <button class="btn btn-danger btn-sm" data-id="<%= order._id %>">Return Order</button>
+                                <td><%= order.orderStatus %>
+                                    <br>
+                                    <% if (order.paymentStatus === 'Failed') { %>
+                                        <span class="text-danger">Payment Failed</span>
+                                    <% } else if (order.paymentStatus === 'Success') { %>
+                                        <span class="text-success">Payment Successful</span>
+                                    <% } else if (order.paymentStatus === 'Refund') { %>
+                                        <span class="text-primary">Refunded Successful</span>
                                     <% } %>
-                                    
+                            </td>
+                                <td>
+                                    <button class="btn btn-info btn-sm viewOrder" data-id="<%= order._id %>">
+                                      View
+                                    </button>
+                          
+                                    <% if (order.paymentStatus === 'Failed') { %>
+                                    <button class="btn btn-warning btn-sm retryPayment" data-id="<%= order._id %>">
+                                      Retry Payment
+                                    </button>
+                                    <% } else if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled') { %>
+                                    <button class="btn btn-danger btn-sm cancelOrder" data-id="<%= order._id %>">
+                                      Cancel Order
+                                    </button>
+                                    <% } else if (order.orderStatus === 'Delivered') { %>
+                                    <button class="btn btn-danger btn-sm returnOrder" data-id="<%= order._id %>">
+                                      Return Order
+                                    </button>
+                                    <% } %>
                                 </td>
                             </tr>
                             <% }) %>
@@ -419,6 +449,41 @@
 
 
 
+
+
+                    <!-- Return Order Modal -->
+                    <div id="returnOrderModal" class="modal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Return Order</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Select a reason for returning your order:</p>
+                                    <select id="returnReasonSelect" class="form-control">
+                                        <option value="">Select a reason</option>
+                                        <option value="Damaged Item">Damaged Item</option>
+                                        <option value="Wrong Item Sent">Wrong Item Sent</option>
+                                        <option value="Not as Described">Not as Described</option>
+                                        <option value="Changed My Mind">Changed My Mind</option>
+                                        <option value="Others">Others</option>
+                                    </select>
+                                    <textarea id="customReason" class="form-control mt-2" placeholder="Please specify..." style="display: none;"></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" id="closeModal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="submitReturnRequest">Submit Return Request</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
                     <!-- to show order details -->
                     <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg custom-modal">
@@ -464,52 +529,74 @@
                 
                 
 
-                <div id="wishlist" class="section hidden">
-                    <h2>Wishlist</h2>
-                    <% if (wishlist && wishlist.items.length > 0) { %>
-                        <div class="row">
-                            <% wishlist.items.forEach(item => { 
-                                const product = item.productID; %>
-                                <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 wishlist-item" data-product-id="<%= product._id %>">
-                                    <div class="card h-100">
-                                        <a href="/product_details/<%= product._id %>">
-                                            <img src="<%= product.images[0] %>" class="card-img-top img-fluid product-image-wishlist" alt="Product Image">
-                                        </a>
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a href="/product_details/<%= product._id %>" class="text-dark">
-                                                    <strong><%= product.name %> <br></strong>
-                                                    <% if (product.categoryID) { %>
-                                                        <%= product.categoryID.name %>
-                                                    <% } %>
-                                                </a>
-                                            </h5>
-                                            <p class="card-text">
-                                                <% if (product.offer) { %>
-                                                    <span style="text-decoration: line-through; color: red;">₹<%= product.price %></span>
-                                                    <span style="color: green;">₹<%= product.bestOfferPrice %></span>
-                                                <% } else { %>
-                                                    <span>₹<%= product.price %></span>
-                                                <% } %>
-                                            </p>
-                                        </div>
-                                        <div class="card-footer d-flex justify-content-between bg-transparent border-top-0">
-                                            <button class="btn btn-outline-danger btn-sm remove-wishlist-btn">
-                                                <i class="bi bi-heart"></i> Remove from Wishlist
-                                            </button>
+                <div id="wallet" class="section hidden">
+                    <h2>Wallet</h2>
+                    
+                    <div class="wallet-balance mb-4">
+                        <h4>Your Wallet Balance:</h4>
+                        <h2 class="text-success">₹<%= wallet.balance %></h2>
+                    </div>
+                    <% if (wallet && wallet.transactions.length > 0) { %>
+                        
+                
+                        <div class="transaction-history">
+                            <h5>Transaction History</h5>
+                            <div class="row">
+                                <% wallet.transactions.forEach(transaction => { %>
+                                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <p class="card-text">
+                                                    <strong>Date:</strong> <%= new Date(transaction.date).toLocaleDateString() %><br>
+                                                    <strong>Description:</strong> <%= transaction.description %><br>
+                                                    <strong>Amount:</strong>
+                                                    <span class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
+                                                        <%= transaction.type === 'credit' ? '+' : '-' %> ₹<%= transaction.amount.toFixed(2) %>
+                                                    </span>
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            <% }); %>
+                                <% }); %>
+                            </div>
                         </div>
                     <% } else { %>
-                        <p>No items in your wishlist.</p>
+                        <p>No transactions available in your wallet.</p>
                     <% } %>
+                
+                    <div class="wallet-actions mt-4">
+                        <button class="btn btn-success btn-sm add-funds-btn" data-bs-toggle="modal" data-bs-target="#addFundsModal">
+                            <i class="bi bi-wallet"></i> Add Funds
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm view-transactions-btn">
+                            <i class="bi bi-receipt"></i> View All Transactions
+                        </button>
+                    </div>
                 </div>
-                
-                
-                
-                
+
+
+
+                <!-- Add Funds Modal -->
+                <div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addFundsModalLabel">Add Funds</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addFundsForm">
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label">Amount</label>
+                                        <input type="number" class="form-control" id="amount" placeholder="Enter amount" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Add Funds</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 
                 
 
@@ -629,7 +716,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
 
@@ -705,49 +792,218 @@ $(document).ready(function() {
 
 </script>
 
+<!-- razorpay -->
+
 <script>
-    // Add event listener to remove item buttons
-    document.querySelectorAll('.remove-wishlist-btn').forEach(button => {
-    button.addEventListener('click', async (e) => {
-        const productID = e.target.closest('.wishlist-item').dataset.productId;
+document.addEventListener('DOMContentLoaded', function() {
+    const retryButtons = document.querySelectorAll('.retryPayment');
 
-        try {
-            const result = await Swal.fire({
-                title: 'Are you sure?',
-                text: 'Do you want to remove this item from your wishlist?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, remove it!',
-            });
+    retryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-id');
+            
+            // Fetch Razorpay Order ID and retry payment
+            axios.post(`/retryPayment/${orderId}`)
+                .then(response => {
+                    console.log(response.data);
+                    
+                    const { razorpayOrderId, totalAmount, orderId } = response.data;
 
-            if (result.isConfirmed) {
-                const response = await axios.delete('/wishlist/remove', {
-                    data: { userID: '<%= user._id %>', productID } // Send userID and productID
+                    // Proceed to Razorpay payment
+                    const options = {
+                        key: 'rzp_test_gFsEtsAPkYQ4Fd', // Your Razorpay test key
+                        amount: totalAmount * 100, // Amount in paise
+                        currency: 'INR',
+                        name: 'SmartSphere',
+                        description: 'Retry Payment',
+                        order_id: razorpayOrderId, // The same Razorpay order ID
+                        handler: function (paymentResponse) {
+                            // Payment success, update backend
+                            axios.post(`/payment/success/${orderId}`, {
+                                paymentId: paymentResponse.razorpay_payment_id
+                            }).then(() => {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Payment Successful',
+                                    text: 'Payment ID: ' + paymentResponse.razorpay_payment_id
+                                }).then(() => {
+                                    window.location.href = `/order/confirmation/${orderId}`;
+                                });
+                            }).catch(err => {
+                                console.error('Error updating payment status:', err);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Unable to update payment status.'
+                                });
+                            });
+                        },
+                        prefill: {
+                            name: 'User Name',  // Prefill with real data if available
+                            email: 'email@example.com',
+                            contact: '1234567890'
+                        },
+                        theme: {
+                            color: '#F37254'
+                        }
+                    };
+
+                    const rzp1 = new Razorpay(options);
+
+                    // Handle Razorpay payment failed event
+                    rzp1.on('payment.failed', function (response) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: 'Your payment failed. Please try again.'
+                        });
+
+                        // Update backend on payment failure
+                        axios.post(`/payment/failure/${orderId}`, {
+                            paymentId: response.error.metadata.payment_id
+                        }).then(() => {
+                            window.location.href = '/profile';
+                        }).catch(err => {
+                            console.error('Error logging payment failure:', err);
+                        });
+                    });
+
+                    // Open Razorpay modal for payment retry
+                    rzp1.open();
+                })
+                .catch(err => {
+                    console.error('Error retrying payment:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Unable to retry payment at this time.'
+                    });
                 });
-
-                if (response.status === 200) {
-                    Swal.fire(
-                        'Removed!',
-                        'The item has been removed from your wishlist.',
-                        'success'
-                    );
-                    // Remove the item from the DOM
-                    e.target.closest('.wishlist-item').remove();
-                } else {
-                    Swal.fire('Oops!', response.data.message, 'error');
-                }
-            }
-        } catch (error) {
-            console.error('Error removing item from wishlist:', error);
-            Swal.fire('Error!', 'An error occurred while removing the item.', 'error');
-        }
+        });
     });
 });
 
+  
+</script>
+
+
+<script>
+
+const addFundsBtn = document.querySelector('.add-funds-btn');
+const addFundsModal = new bootstrap.Modal(document.getElementById('addFundsModal'));
+
+addFundsBtn.addEventListener('click', () => {
+    addFundsModal.show();
+});
+
+
+const addFundsForm = document.getElementById('addFundsForm');
+const walletBalanceElement = document.querySelector('.wallet-balance h2');
+
+addFundsForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Prevent form from refreshing the page
+
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    try {
+        // Make an Axios POST request to add funds
+        const response = await axios.post('/wallet/add-funds', { amount });
+
+        if (response.data.success) {
+            // Update the wallet balance in the UI
+            walletBalanceElement.textContent = `₹${response.data.newBalance.toFixed(2)}`;
+
+            // Close the modal
+            const addFundsModal = bootstrap.Modal.getInstance(document.getElementById('addFundsModal'));
+            addFundsModal.hide();
+
+            // Optionally, show a success alert
+            alert('Funds added successfully!');
+        } else {
+            alert('Failed to add funds. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error adding funds:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
 
 </script>
 
 
+<!-- return order -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const returnModal = document.getElementById('returnOrderModal');
+    const returnReasonSelect = document.getElementById('returnReasonSelect');
+    const customReason = document.getElementById('customReason');
+    const submitReturnRequest = document.getElementById('submitReturnRequest');
+    const closeModal = document.getElementById('closeModal');
 
+    document.querySelectorAll('.returnOrder').forEach(button => {
+        button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            returnModal.dataset.orderId = orderId;
+            returnModal.style.display = 'block'; 
+        });
+    });
+
+    returnReasonSelect.addEventListener('change', function() {
+        customReason.style.display = this.value === 'Others' ? 'block' : 'none';
+    });
+
+    submitReturnRequest.addEventListener('click', async () => {
+        const orderId = returnModal.dataset.orderId;
+        const selectedReason = returnReasonSelect.value;
+        const reasonToSubmit = selectedReason === 'Others' ? customReason.value : selectedReason;
+
+        if (!reasonToSubmit) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Oops...',
+                text: 'Please select a reason for the return.'
+            });
+            return;
+        }
+
+        try {
+            console.log(reasonToSubmit);
+            
+            const response = await axios.post(`/return-order/${orderId}`, {
+                reason: reasonToSubmit
+            });
+            console.log(reasonToSubmit);
+
+            if (response.data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Your return request has been submitted.'
+                }).then(() => {
+                    returnModal.style.display = 'none'; 
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'There was an issue submitting your return request.'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'There was an error processing your request.'
+            });
+        }
+    });
+
+    // Close the modal
+    closeModal.addEventListener('click', () => {
+        returnModal.style.display = 'none';
+    });
+});
+
+</script>

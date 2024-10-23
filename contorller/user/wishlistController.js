@@ -8,7 +8,49 @@ const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
 const offerSchema = require('../../models/offerModel')
 const couponSchema = require('../../models/couponModel')
-const wishlistShema = require('../../models/wishlistModel')
+const wishlistSchema = require('../../models/wishlistModel')
+
+
+
+// to render wishlist
+const wishlist = async(req,res)=>{
+    const userId = req.session.user._id;
+
+    const user = await userSchema.findById(userId);
+    if (!user) return res.redirect('/')
+
+    const wishlist = await wishlistSchema.findOne({ userID: userId }).populate('items.productID') || { items: [] };
+        const productIds = wishlist.items.map(item => item.productID._id);
+        const offers = await offerSchema.find({ selectedProducts: { $in: productIds } });
+
+
+        const offerMap = offers.reduce((map, offer) => {
+            offer.selectedProducts.forEach(productId => {
+                map[productId] = offer; 
+            });
+            return map;
+        }, {});
+
+
+        wishlist.items.forEach(item => {
+            const productId = item.productID._id.toString();
+            item.productID.offer = offerMap[productId] || null; 
+            
+
+            if (item.productID.offer) {
+                const regularPrice = item.productID.price;
+                const discountedPrice = Math.round(regularPrice - (regularPrice * (item.productID.offer.discountAmount / 100)));
+                item.productID.bestOfferPrice = discountedPrice; 
+            } else {
+                item.productID.bestOfferPrice = item.productID.price; 
+            }
+        });
+
+        res.render('user/wishlist',{
+            user,
+            wishlist
+        })
+}
 
 
 
@@ -19,9 +61,9 @@ const addWishlist = async (req, res) => {
     const productId = req.params.productId;
 
     try {
-        let wishlist = await wishlistShema.findOne({ userID: userId });
+        let wishlist = await wishlistSchema.findOne({ userID: userId });
         if (!wishlist) {
-            wishlist = new wishlistShema({ userID: userId, items: [] });
+            wishlist = new wishlistSchema({ userID: userId, items: [] });
         }
 
         const exists = wishlist.items.some(item => item.productID.equals(productId));
@@ -48,7 +90,7 @@ const removeFromWishlist = async (req, res) => {
         const { userID, productID } = req.body;
 
         // Find the user's wishlist and remove the item by productID
-        const wishlist = await wishlistShema.findOneAndUpdate(
+        const wishlist = await wishlistSchema.findOneAndUpdate(
             { userID },
             { $pull: { items: { productID } } }, // Remove the item with matching productID
             { new: true } // Return the updated document
@@ -69,5 +111,6 @@ const removeFromWishlist = async (req, res) => {
 
 module.exports = {
     addWishlist,
-    removeFromWishlist
+    removeFromWishlist,
+    wishlist
 }

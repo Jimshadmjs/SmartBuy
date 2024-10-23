@@ -164,6 +164,7 @@
                         <th>Status</th>
                         <th>Total Price</th>
                         <th>Payment Method</th>
+                        <th>Payment Status</th> <!-- New column for Payment Status -->
                         <th>Date</th>
                         <th>Action</th>
                     </tr>
@@ -185,6 +186,17 @@
                         </td>
                         <td>₹<%= order.totalAmount %></td>
                         <td><%= order.paymentMethod %></td>
+                        <td>
+                            <% if (order.paymentStatus === 'Success') { %>
+                                <span class="badge bg-success">Success</span>
+                            <% } else if (order.paymentStatus === 'Failed') { %>
+                                <span class="badge bg-danger">Failed</span>
+                            <% } else if (order.paymentStatus === 'Refund') { %>
+                                <span class="badge bg-danger">Refund</span>
+                            <% } else { %>
+                                <span class="badge bg-warning">Pending</span>
+                            <% } %>
+                        </td>
                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                         <td>
                             <div class="action-buttons">
@@ -199,16 +211,15 @@
                                 <% } else { %>
                                     <span class="text-muted">Cannot Change</span>
                                 <% } %>
+                                <button class="btn btn-primary viewOrder" data-id="<%= order._id %>">View</button> <!-- Moved here -->
                             </div>
-                        </td> 
-                        <td>
-                            <button class="btn btn-primary viewOrder" data-id="<%= order._id %>">View</button>
                         </td>
                     </tr>
                     <% }); %>
                 </tbody>
             </table>
         </div>
+        
 
         <!-- Pagination -->
         <div class="pagination">

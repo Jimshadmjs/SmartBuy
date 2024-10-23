@@ -236,40 +236,34 @@ const product_details = async (req, res) => {
   try {
       const id = req.params.id;
 
-      // Fetch the product by ID
       const product = await productSchema.findById(id);
       if (!product) {
           return res.status(404).json({ message: 'Product not found' });
       }
 
-      // Fetch related products
       const relatedProducts = await productSchema.find({
           categoryID: product.categoryID,
           _id: { $ne: product._id },
           isListed: true
       }).limit(8);
 
-      // Fetch active offers for the specific product
       const productOffers = await offerSchema.find({
           isActive: true,
           targetType: 'Product',
           selectedProducts: product._id
       });
 
-      // Ensure categoryIDs is an array
       const categoryIDs = [product.categoryID]; 
-      console.log('Category IDs:', categoryIDs); // Log category IDs
+      console.log('Category IDs:', categoryIDs); 
 
-      // Fetch active category offers
       const categoryOffers = await offerSchema.find({
           isActive: true,
           targetType: 'Category',
           selectedCategory: { $in: categoryIDs }
       }).populate('selectedCategory'); 
 
-      console.log('Category Offers:', categoryOffers); // Log category offers
+      console.log('Category Offers:', categoryOffers); 
 
-      // Format the product data to include offer information
       const productOffer = productOffers.length > 0 ? productOffers[0] : null;
       const categoryOffer = categoryOffers.length > 0 ? categoryOffers[0] : null;
 
@@ -291,7 +285,6 @@ const product_details = async (req, res) => {
           } : { hasOffer: false }
       };
 
-      // If there's a category offer, calculate the discounted price
       if (categoryOffer) {
           const categoryDiscountedPrice = Math.round(product.price - (product.price * (categoryOffer.discountAmount / 100)));
           formattedProduct.categoryOffer = {
@@ -300,7 +293,6 @@ const product_details = async (req, res) => {
           };
       }
 
-      // Render the product detail page with the formatted product and related products
       res.render('user/product_detail', {
           user: req.session.user ?? false,
           product: formattedProduct,
@@ -457,7 +449,7 @@ const shop = async (req, res) => {
           } : { hasOffer: false }
       };
   });
-
+5
   const categories = await categorySchema.find();
 
   if (req.session.user) {

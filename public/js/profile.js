@@ -7,14 +7,14 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     const cancelOrderButtons = document.querySelectorAll('.cancelOrder');
-    let orderIdToCancel = null; // Variable to store the order ID to cancel
-    let modal; // Variable to hold the modal instance
+    let orderIdToCancel = null; 
+    let modal; 
 
     cancelOrderButtons.forEach(button => {
         button.addEventListener('click', function () {
             orderIdToCancel = this.getAttribute('data-id');
-            modal = new bootstrap.Modal(document.getElementById('cancelOrderModal')); // Create new modal instance
-            modal.show(); // Show the modal
+            modal = new bootstrap.Modal(document.getElementById('cancelOrderModal')); 
+            modal.show(); 
         });
     });
 
@@ -27,16 +27,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Send cancel order request using Axios
+        
         axios.post(`/order/cancel/${orderIdToCancel}`, { reason })
             .then(response => {
-                modal.hide(); // Hide the modal
+                modal.hide(); 
                 Swal.fire('Cancelled!', response.data.message, 'success').then(() => {
-                    location.reload(); // Reload to see updated orders
+                    location.reload(); 
                 });
             })
             .catch(error => {
-                modal.hide(); // Hide the modal
+                modal.hide(); 
                 Swal.fire('Error!', error.response.data.message || 'Something went wrong!', 'error');
             });
     });

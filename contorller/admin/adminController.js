@@ -3,6 +3,7 @@ const User = require('../../models/userModel')
 const categorySchema = require('../../models/category')
 const productSchema = require('../../models/productModel')
 const orderSchema = require('../../models/orderModel')
+const walletSchema = require('../../models/walletModel')
 const multer = require('multer');
 const bcrypt = require('bcrypt')
 
@@ -459,33 +460,79 @@ const changeStatus = (req, res) => {
 }
 
 
+
 // to approve cancel request
 const approveCancellation = async (req, res) => {
     const { orderId } = req.params;
 
     try {
-        const order = await orderSchema.findOneAndUpdate(
-            { _id: orderId },
-            { 
-                orderStatus: 'Cancelled',
-                cancellationRequested: false 
-            },
-            { new: true } 
-        );
-
-        
-        
-
+        const order = await orderSchema.findById(orderId);
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(404).json({ message: 'Order not found.' });
         }
 
-        res.json({ message: 'Order cancelled successfully.' });
+        const updatedOrder = await orderSchema.findByIdAndUpdate(
+            orderId,
+            { 
+                orderStatus: 'Cancelled', 
+                cancellationRequested: false 
+            },
+            { new: true }
+        );
+
+        await Promise.all(
+            order.items.map(async (item) => {
+                await productSchema.findByIdAndUpdate(
+                    item.productID,
+                    { $inc: { stock: item.quantity } } 
+                );
+            })
+        );
+
+        if (order.paymentMethod === 'UPI' && order.paymentStatus === 'Success') {
+            await refundToWallet(order.userID, order.totalAmount,orderId);
+        }
+
+        res.json({ message: 'Order cancelled successfully.', updatedOrder });
     } catch (error) {
         console.error('Error approving cancellation:', error);
         res.status(500).json({ message: 'An error occurred while cancelling the order.' });
     }
 };
+
+
+// to refund 
+const refundToWallet = async (userId, amount,orderId) => {
+    try {
+        const wallet = await walletSchema.findOneAndUpdate(
+            { userId },
+            { 
+                $inc: { balance: amount },
+                $push: { 
+                    transactions: { 
+                        type: 'credit', 
+                        amount: amount, 
+                        description: 'Refund for cancelled order' 
+                    } 
+                } 
+            },
+            { new: true, upsert: true } 
+        );
+
+         await orderSchema.findOneAndUpdate(
+            { _id: orderId },
+            { paymentStatus: 'Refund' },
+            { new: true }
+        );
+  
+    } catch (error) {
+        console.error('Error processing refund to wallet:', error);
+        throw new Error('Refund to wallet failed');
+    }
+};
+
+
+
 
 
 // to view order details

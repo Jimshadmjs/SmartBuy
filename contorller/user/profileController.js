@@ -8,6 +8,7 @@ const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
 const offerSchema = require('../../models/offerModel')
 const wishlistSchema = require('../../models/wishlistModel')
+const walletSchema = require('../../models/walletModel')
 const mongoose = require('mongoose');
 require("dotenv").config()
 
@@ -24,32 +25,11 @@ const profile = async (req, res) => {
 
         const addresses = await addressSchema.find({ user: userId });
 
-        const wishlist = await wishlistSchema.findOne({ userID: userId }).populate('items.productID') || { items: [] };
-        const productIds = wishlist.items.map(item => item.productID._id);
-        const offers = await offerSchema.find({ selectedProducts: { $in: productIds } });
-
-
-        const offerMap = offers.reduce((map, offer) => {
-            offer.selectedProducts.forEach(productId => {
-                map[productId] = offer; 
-            });
-            return map;
-        }, {});
-
-
-        wishlist.items.forEach(item => {
-            const productId = item.productID._id.toString();
-            item.productID.offer = offerMap[productId] || null; 
-            
-
-            if (item.productID.offer) {
-                const regularPrice = item.productID.price;
-                const discountedPrice = Math.round(regularPrice - (regularPrice * (item.productID.offer.discountAmount / 100)));
-                item.productID.bestOfferPrice = discountedPrice; 
-            } else {
-                item.productID.bestOfferPrice = item.productID.price; 
-            }
-        });
+        // Fetch the wallet details for the user
+        const wallet = await walletSchema.findOne({userId }) || { 
+                    balance: 0, 
+                    transactions: [] 
+                };
 
         const page = parseInt(req.query.page) || 1;
         const limit = 5; 
@@ -71,7 +51,7 @@ const profile = async (req, res) => {
             orders, 
             currentPage: page, 
             totalPages,
-            wishlist
+            wallet
         });
     } catch (err) {
         console.error(err);
@@ -226,6 +206,36 @@ const cancelOrder =  async (req, res) => {
 
 
 
+
+// to return order
+
+const returnOrder =  async (req, res) => {
+    const { orderId } = req.params;
+    const { reason } = req.body; 
+
+    try {
+        const order = await orderSchema.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ success:false });
+        }
+
+        order.cancellationRequested = true;
+        order.cancellationReason = reason;
+        await order.save();
+
+        res.status(200).json({ success:true });
+    } catch (error) {
+        console.error('Error submitting cancellation request:', error);
+        res.status(500).json({success:false });
+    }
+};
+
+
+
+
+
+
+
 // order details
 
 const orderDetails = async (req, res) => {
@@ -262,5 +272,6 @@ module.exports={
     daleteAddress,
     updateDetails,
     cancelOrder,
-    orderDetails
+    orderDetails,
+    returnOrder
 }
