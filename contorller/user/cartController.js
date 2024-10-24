@@ -348,7 +348,7 @@ const checkout = async (req, res) => {
         discount,
         deliveryFee,
         total,
-        totalPriceFromSchema // Optional: send this to the view if needed
+        totalPriceFromSchema 
     });
 };
 
@@ -409,7 +409,7 @@ const placeOrder =  async (req, res) => {
             },
             paymentMethod: paymentMethod === 'bankTransfer' ? 'UPI' : 'COD',
             orderStatus: 'Pending',
-            offerDiscount: sum,  // Store original prices for offers
+            offerDiscount: sum,  
             paymentStatus: paymentMethod === 'bankTransfer' ? 'Failed' : 'Pending'
         });
 
@@ -436,7 +436,7 @@ const placeOrder =  async (req, res) => {
                 res.json({ orderId: newOrder._id, razorpayOrderId: razorpayOrder.id, totalAmount });
 
             } catch (error) {
-                newOrder.paymentStatus = 'Failed'; // Set paymentStatus to Failed if order creation fails
+                newOrder.paymentStatus = 'Failed'; 
                 await newOrder.save();
                 await CartSchema.findOneAndDelete({ userId: userId });
                 res.status(500).json({ message: 'Payment failed. Please try again.', orderId: newOrder._id });
@@ -444,7 +444,7 @@ const placeOrder =  async (req, res) => {
         } else {
             // Handle COD orders
             await newOrder.save();
-            await CartSchema.findOneAndDelete({ userId: userId }); // Clear the cart
+            await CartSchema.findOneAndDelete({ userId: userId }); 
             res.json({ orderId: newOrder._id });
         }
 
@@ -624,9 +624,19 @@ const applyCoupon = async (req, res) => {
             return res.status(400).json({ message: `This coupon is only applicable for purchases less than ${coupon.maxAmount}` });
         }
 
+        let discount = 0;
+        if (coupon.discountType === 'Fixed Amount') {
+            discount = coupon.discountAmount;
+        } else if (coupon.discountType === 'Percentage') {
+            discount = (cart.totalPrice * coupon.discountAmount) /100;
+        }
+
         const total = cart.totalPrice - coupon.discountAmount;
         
-        const newTotal = Math.max(total, 0);
+        const newTotal = Math.max(total - discount, 0);
+        
+        if(newTotal<100) return res.status(400).json({ message: `This coupon Can't Use Cart Min Amount is 100` });
+
         
         await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
 

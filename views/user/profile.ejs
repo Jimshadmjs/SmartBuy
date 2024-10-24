@@ -364,7 +364,11 @@
                                     </div>
                                 </td>
                                 <td>₹<%= order.totalAmount %></td>
-                                <td><%= order.orderStatus %>
+                                <td>
+                                    <% if (order.paymentStatus != 'Failed') { %>
+                                    
+                                        <%= order.orderStatus %>
+                                        <% }%>
                                     <br>
                                     <% if (order.paymentStatus === 'Failed') { %>
                                         <span class="text-danger">Payment Failed</span>
@@ -573,8 +577,6 @@
                         </button>
                     </div>
                 </div>
-
-
 
                 <!-- Add Funds Modal -->
                 <div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">

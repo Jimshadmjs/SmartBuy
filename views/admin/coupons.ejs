@@ -58,7 +58,7 @@
             </table>
         </div>
 
-       <!-- Add Coupon Modal -->
+        <!-- Add Coupon Modal -->
         <div class="modal-coupon" id="couponModal">
             <div class="modal-content-coupon">
                 <span class="close-coupon" onclick="closeModal()">&times;</span>
@@ -67,34 +67,35 @@
                     <input type="hidden" id="couponId" name="couponId">
 
                     <label for="couponCode">Coupon Code:</label>
-                    <input type="text" id="couponCode" name="couponCode" required>
+                    <input type="text" id="couponCode" name="couponCode">
                     <div class="error-message" id="couponCodeError"></div>
 
                     <label for="discountType">Discount Type:</label>
-                    <select id="discountType" name="discountType" required>
+                    <select id="discountType" name="discountType" onchange="handleDiscountTypeChange()">
                         <option value="">Select...</option>
                         <option value="Fixed Amount">Fixed Amount</option>
+                        <option value="Percentage">Percentage</option>
                     </select>
                     <div class="error-message" id="discountTypeError"></div>
 
-                    <label for="discountAmount">Discount Amount:</label>
-                    <input type="number" id="discountAmount" name="discountAmount" required min="0">
+                    <label for="discountAmount" id="discountAmountLabel">Discount Amount:</label>
+                    <input type="number" id="discountAmount" name="discountAmount" placeholder="Enter amount" min="0">
                     <div class="error-message" id="discountAmountError"></div>
 
                     <label for="minAmount">Minimum Amount:</label>
-                    <input type="number" id="minAmount" name="minAmount" required min="0">
+                    <input type="number" id="minAmount" name="minAmount" min="0">
                     <div class="error-message" id="minAmountError"></div>
 
                     <label for="maxAmount">Maximum Amount:</label>
-                    <input type="number" id="maxAmount" name="maxAmount" required min="0">
+                    <input type="number" id="maxAmount" name="maxAmount" min="0">
                     <div class="error-message" id="maxAmountError"></div>
 
                     <label for="startDate">Start Date:</label>
-                    <input type="date" id="startDate" name="startDate" required>
+                    <input type="date" id="startDate" name="startDate">
                     <div class="error-message" id="startDateError"></div>
 
                     <label for="endDate">End Date:</label>
-                    <input type="date" id="endDate" name="endDate" required>
+                    <input type="date" id="endDate" name="endDate">
                     <div class="error-message" id="endDateError"></div>
 
                     <button type="submit" class="submit-btn">Save Coupon</button>
@@ -103,49 +104,50 @@
         </div>
 
 
-
-        <!-- Modal for Editing Coupons -->
-        <div class="modal-coupon" id="editCouponModal" style="display:none;">
-            <div class="modal-content-coupon">
-                <span class="close-coupon" onclick="closeEditModal()">&times;</span>
-                <h5 id="editModalTitle">Edit Coupon</h5>
-                <form id="editCouponForm">
-                    <input type="hidden" id="editCouponId" name="editCouponId">
-
-                    <label for="editCouponCode">Coupon Code:</label>
-                    <input type="text" id="editCouponCode" name="editCouponCode" required>
-                    <div class="error-message" id="editCouponCodeError"></div>
-
-                    <label for="editDiscountType">Discount Type:</label>
-                    <select id="editDiscountType" name="editDiscountType" required>
-                        <option value="">Select...</option>
-                        <option value="Fixed Amount">Fixed Amount</option>
-                    </select>
-                    <div class="error-message" id="editDiscountTypeError"></div>
-
-                    <label for="editDiscountAmount">Discount Amount:</label>
-                    <input type="number" id="editDiscountAmount" name="editDiscountAmount" required min="0">
-                    <div class="error-message" id="editDiscountAmountError"></div>
-
-                    <label for="editMinAmount">Minimum Amount:</label>
-                    <input type="number" id="editMinAmount" name="editMinAmount" required min="0">
-                    <div class="error-message " id="editMinAmountError"></div>
-
-                    <label for="editMaxAmount">Maximum Amount:</label>
-                    <input type="number" id="editMaxAmount" name="editMaxAmount" required min="0">
-                    <div class="error-message" id="editMaxAmountError"></div>
-
-                    <label for="editStartDate">Start Date:</label>
-                    <input type="date" id="editStartDate" name="editStartDate" required>
-
-                    <label for="editEndDate">End Date:</label>
-                    <input type="date" id="editEndDate" name="editEndDate" required>
-                    <div class="error-message" id="editEndDateError"></div>
-
-                    <button type="submit" class="submit-btn">Save Changes</button>
-                </form>
-            </div>
+    <!-- Modal for Editing Coupons -->
+    <div class="modal-coupon" id="editCouponModal" style="display:none;">
+        <div class="modal-content-coupon">
+            <span class="close-coupon" onclick="closeEditModal()">&times;</span>
+            <h5 id="editModalTitle">Edit Coupon</h5>
+            <form id="editCouponForm">
+                <input type="hidden" id="editCouponId" name="editCouponId">
+    
+                <label for="editCouponCode">Coupon Code:</label>
+                <input type="text" id="editCouponCode" name="editCouponCode">
+                <div class="error-message" id="editCouponCodeError"></div>
+    
+                <label for="editDiscountType">Discount Type:</label>
+                <select id="editDiscountType" name="editDiscountType" onchange="handleEditDiscountTypeChange()">
+                    <option value="">Select...</option>
+                    <option value="Fixed Amount">Fixed Amount</option>
+                    <option value="Percentage">Percentage</option>
+                </select>
+                <div class="error-message" id="editDiscountTypeError"></div>
+    
+                <label for="editDiscountAmount" id="editDiscountAmountLabel">Discount Amount:</label>
+                <input type="number" id="editDiscountAmount" name="editDiscountAmount" placeholder="Enter amount" min="0">
+                <div class="error-message" id="editDiscountAmountError"></div>
+    
+                <label for="editMinAmount">Minimum Amount:</label>
+                <input type="number" id="editMinAmount" name="editMinAmount" min="0">
+                <div class="error-message" id="editMinAmountError"></div>
+    
+                <label for="editMaxAmount">Maximum Amount:</label>
+                <input type="number" id="editMaxAmount" name="editMaxAmount" min="0">
+                <div class="error-message" id="editMaxAmountError"></div>
+    
+                <label for="editStartDate">Start Date:</label>
+                <input type="date" id="editStartDate" name="editStartDate">
+                <div class="error-message" id="editStartDateError"></div>
+    
+                <label for="editEndDate">End Date:</label>
+                <input type="date" id="editEndDate" name="editEndDate">
+                <div class="error-message" id="editEndDateError"></div>
+    
+                <button type="submit" class="submit-btn">Save Changes</button>
+            </form>
         </div>
+    </div>
 
 
         <div class="pagination">
@@ -175,3 +177,281 @@
 
 
 </html>
+
+
+<script>
+    function handleDiscountTypeChange() {
+        const discountType = document.getElementById('discountType').value;
+        const discountLabel = document.getElementById('discountAmountLabel');
+        const discountInput = document.getElementById('discountAmount');
+        
+        if (discountType === 'Percentage') {
+            discountLabel.textContent = 'Discount Percentage:';
+            discountInput.placeholder = 'Enter percentage';
+            discountInput.setAttribute('max', '100');  // To ensure percentage doesn't exceed 100
+        } else if (discountType === 'Fixed Amount') {
+            discountLabel.textContent = 'Discount Amount:';
+            discountInput.placeholder = 'Enter amount';
+            discountInput.removeAttribute('max'); // Remove max for fixed amount
+        } else {
+            discountLabel.textContent = 'Discount Amount:'; // Default label
+            discountInput.placeholder = 'Enter amount'; // Default placeholder
+            discountInput.removeAttribute('max');
+        }
+    }
+</script>
+
+<!-- discount editing percentage and amount controlling -->
+<script>
+    function handleEditDiscountTypeChange() {
+        const editDiscountType = document.getElementById('editDiscountType').value;
+        const editDiscountLabel = document.getElementById('editDiscountAmountLabel');
+        const editDiscountInput = document.getElementById('editDiscountAmount');
+        
+        if (editDiscountType === 'Percentage') {
+            editDiscountLabel.textContent = 'Discount Percentage:';
+            editDiscountInput.placeholder = 'Enter percentage';
+            editDiscountInput.setAttribute('max', '100');  // To ensure percentage doesn't exceed 100
+        } else if (editDiscountType === 'Fixed Amount') {
+            editDiscountLabel.textContent = 'Discount Amount:';
+            editDiscountInput.placeholder = 'Enter amount';
+            editDiscountInput.removeAttribute('max'); // Remove max for fixed amount
+        } else {
+            editDiscountLabel.textContent = 'Discount Amount:'; // Default label
+            editDiscountInput.placeholder = 'Enter amount'; // Default placeholder
+            editDiscountInput.removeAttribute('max');
+        }
+    }
+</script>
+
+<!-- add coupon validation -->
+<script>
+    const couponForm = document.getElementById('couponForm');
+    
+    couponForm.addEventListener('input', validateForm);
+
+    function validateForm() {
+        // Validate Coupon Code
+        const couponCode = document.getElementById('couponCode');
+        const couponCodeError = document.getElementById('couponCodeError');
+        if (!couponCode.value.trim()) {
+            couponCodeError.textContent = 'Coupon code is required';
+        } else {
+            couponCodeError.textContent = '';
+        }
+
+        // Validate Discount Type
+        const discountType = document.getElementById('discountType');
+        const discountTypeError = document.getElementById('discountTypeError');
+        if (!discountType.value) {
+            discountTypeError.textContent = 'Discount type is required';
+        } else {
+            discountTypeError.textContent = '';
+        }
+
+        // Validate Discount Amount
+        const discountAmount = document.getElementById('discountAmount');
+        const discountAmountError = document.getElementById('discountAmountError');
+        const maxAmount = document.getElementById('maxAmount').value;
+        
+        if (!discountAmount.value.trim()) {
+            discountAmountError.textContent = 'Discount amount is required';
+        } else if (discountType.value === 'Percentage' && discountAmount.value > 100) {
+            discountAmountError.textContent = 'Percentage discount cannot exceed 100';
+        } else if (maxAmount && parseFloat(discountAmount.value) > parseFloat(maxAmount)) {
+            discountAmountError.textContent = 'Discount amount cannot exceed the maximum amount';
+        } else {
+            discountAmountError.textContent = '';
+        }
+
+        // Validate Minimum Amount
+        const minAmount = document.getElementById('minAmount');
+        const minAmountError = document.getElementById('minAmountError');
+        if (!minAmount.value.trim()) {
+            minAmountError.textContent = 'Minimum amount is required';
+        } else if (minAmount.value < 0) {
+            minAmountError.textContent = 'Minimum amount must be a positive number';
+        } else {
+            minAmountError.textContent = '';
+        }
+
+        // Validate Maximum Amount
+        const maxAmountError = document.getElementById('maxAmountError');
+        if (!maxAmount.trim()) {
+            maxAmountError.textContent = 'Maximum amount is required';
+        } else if (maxAmount < 0) {
+            maxAmountError.textContent = 'Maximum amount must be a positive number';
+        } else {
+            maxAmountError.textContent = '';
+        }
+
+        // Validate Start Date
+        const startDate = document.getElementById('startDate');
+        const startDateError = document.getElementById('startDateError');
+        const currentDate = new Date().toISOString().split('T')[0];
+        if (!startDate.value.trim()) {
+            startDateError.textContent = 'Start date is required';
+        } else if (startDate.value < currentDate) {
+            startDateError.textContent = 'Start date cannot be in the past';
+        } else {
+            startDateError.textContent = '';
+        }
+
+        // Validate End Date
+        const endDate = document.getElementById('endDate');
+        const endDateError = document.getElementById('endDateError');
+        if (!endDate.value.trim()) {
+            endDateError.textContent = 'End date is required';
+        } else if (new Date(endDate.value) <= new Date(startDate.value)) {
+            endDateError.textContent = 'End date must be after the start date';
+        } else {
+            endDateError.textContent = '';
+        }
+    }
+
+    couponForm.addEventListener('submit', function(event) {
+        validateForm();
+        const errors = document.querySelectorAll('.error-message');
+        let hasError = false;
+
+        errors.forEach(error => {
+            if (error.textContent !== '') {
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            event.preventDefault(); // Prevent form submission if validation fails
+        }
+    });
+
+    function handleDiscountTypeChange() {
+        const discountType = document.getElementById('discountType').value;
+        const discountAmountLabel = document.getElementById('discountAmountLabel');
+        const discountAmount = document.getElementById('discountAmount');
+        
+        if (discountType === 'Percentage') {
+            discountAmountLabel.textContent = 'Discount Percentage:';
+            discountAmount.setAttribute('max', '100');
+        } else {
+            discountAmountLabel.textContent = 'Discount Amount:';
+            discountAmount.removeAttribute('max');
+        }
+    }
+</script>
+
+<!-- edit coupon validation -->
+<script>
+    const editCouponForm = document.getElementById('editCouponForm');
+
+    editCouponForm.addEventListener('input', validateEditForm);
+
+    function validateEditForm() {
+        // Validate Coupon Code
+        const couponCode = document.getElementById('editCouponCode');
+        const couponCodeError = document.getElementById('editCouponCodeError');
+        if (!couponCode.value.trim()) {
+            couponCodeError.textContent = 'Coupon code is required';
+        } else {
+            couponCodeError.textContent = '';
+        }
+
+        // Validate Discount Type
+        const discountType = document.getElementById('editDiscountType');
+        const discountTypeError = document.getElementById('editDiscountTypeError');
+        if (!discountType.value) {
+            discountTypeError.textContent = 'Discount type is required';
+        } else {
+            discountTypeError.textContent = '';
+        }
+
+        // Validate Discount Amount
+        const discountAmount = document.getElementById('editDiscountAmount');
+        const discountAmountError = document.getElementById('editDiscountAmountError');
+        const maxAmount = document.getElementById('editMaxAmount').value;
+
+        if (!discountAmount.value.trim()) {
+            discountAmountError.textContent = 'Discount amount is required';
+        } else if (discountType.value === 'Percentage' && discountAmount.value > 100) {
+            discountAmountError.textContent = 'Percentage discount cannot exceed 100';
+        } else if (maxAmount && parseFloat(discountAmount.value) > parseFloat(maxAmount)) {
+            discountAmountError.textContent = 'Discount amount cannot exceed the maximum amount';
+        } else {
+            discountAmountError.textContent = '';
+        }
+
+        // Validate Minimum Amount
+        const minAmount = document.getElementById('editMinAmount');
+        const minAmountError = document.getElementById('editMinAmountError');
+        if (!minAmount.value.trim()) {
+            minAmountError.textContent = 'Minimum amount is required';
+        } else if (minAmount.value < 0) {
+            minAmountError.textContent = 'Minimum amount must be a positive number';
+        } else {
+            minAmountError.textContent = '';
+        }
+
+        // Validate Maximum Amount
+        const maxAmountError = document.getElementById('editMaxAmountError');
+        if (!maxAmount.trim()) {
+            maxAmountError.textContent = 'Maximum amount is required';
+        } else if (maxAmount < 0) {
+            maxAmountError.textContent = 'Maximum amount must be a positive number';
+        } else {
+            maxAmountError.textContent = '';
+        }
+
+        // Validate Start Date
+        const startDate = document.getElementById('editStartDate');
+        const startDateError = document.getElementById('editStartDateError');
+        const currentDate = new Date().toISOString().split('T')[0];
+        if (!startDate.value.trim()) {
+            startDateError.textContent = 'Start date is required';
+        } else if (startDate.value < currentDate) {
+            startDateError.textContent = 'Start date cannot be in the past';
+        } else {
+            startDateError.textContent = '';
+        }
+
+        // Validate End Date
+        const endDate = document.getElementById('editEndDate');
+        const endDateError = document.getElementById('editEndDateError');
+        if (!endDate.value.trim()) {
+            endDateError.textContent = 'End date is required';
+        } else if (new Date(endDate.value) <= new Date(startDate.value)) {
+            endDateError.textContent = 'End date must be after the start date';
+        } else {
+            endDateError.textContent = '';
+        }
+    }
+
+    editCouponForm.addEventListener('submit', function(event) {
+        validateEditForm();
+        const errors = document.querySelectorAll('.error-message');
+        let hasError = false;
+
+        errors.forEach(error => {
+            if (error.textContent !== '') {
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            event.preventDefault(); // Prevent form submission if validation fails
+        }
+    });
+
+    function handleEditDiscountTypeChange() {
+        const discountType = document.getElementById('editDiscountType').value;
+        const discountAmountLabel = document.getElementById('editDiscountAmountLabel');
+        const discountAmount = document.getElementById('editDiscountAmount');
+        
+        if (discountType === 'Percentage') {
+            discountAmountLabel.textContent = 'Discount Percentage:';
+            discountAmount.setAttribute('max', '100');
+        } else {
+            discountAmountLabel.textContent = 'Discount Amount:';
+            discountAmount.removeAttribute('max');
+        }
+        }
+</script>

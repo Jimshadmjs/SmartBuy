@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
+// address
 
 document.addEventListener('DOMContentLoaded', function () {
     const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
@@ -254,42 +254,54 @@ document.addEventListener('DOMContentLoaded', function () {
     function validateForm(data) {
         let isValid = true;
         clearValidationMessages();
-
-        if (!data.fullName) {
-            displayError('fullNameError', 'Full Name cannot be empty or whitespace.');
+    
+        const nameRegex = /^[a-zA-Z\s]+$/; 
+        const phoneRegex = /^[1-9][0-9]{9}$/; 
+        const pincodeRegex = /^[1-9][0-9]{5}$/; 
+    
+        if (!data.fullName || !nameRegex.test(data.fullName)) {
+            displayError('fullNameError', 'Full Name must contain only letters and spaces.');
             isValid = false;
         }
-        if (!data.phone) {
-            displayError('phoneError', 'Phone cannot be empty or whitespace.');
+    
+        if (!data.phone || !phoneRegex.test(data.phone)) {
+            displayError('phoneError', 'Phone number must be 10 digits and cannot start with 0.');
             isValid = false;
         }
-        if (!data.address) {
+    
+        if (!data.address.trim()) {
             displayError('addressError', 'Address cannot be empty or whitespace.');
             isValid = false;
         }
-        if (!data.district) {
+    
+        if (!data.district.trim()) {
             displayError('districtError', 'District cannot be empty or whitespace.');
             isValid = false;
         }
-        if (!data.city) {
+    
+        if (!data.city.trim()) {
             displayError('cityError', 'City cannot be empty or whitespace.');
             isValid = false;
         }
-        if (!data.state) {
+    
+        if (!data.state.trim()) {
             displayError('stateError', 'State cannot be empty or whitespace.');
             isValid = false;
         }
-        if (!data.pincode) {
-            displayError('pincodeError', 'Pincode cannot be empty or whitespace.');
+    
+        if (!data.pincode || !pincodeRegex.test(data.pincode)) {
+            displayError('pincodeError', 'Pincode must be 6 digits and cannot start with 0.');
             isValid = false;
         }
-        if (!data.country) {
+    
+        if (!data.country.trim()) {
             displayError('countryError', 'Country cannot be empty or whitespace.');
             isValid = false;
         }
-
+    
         return isValid;
     }
+    
 
     function displayError(elementId, message) {
         const errorElement = document.getElementById(elementId);
@@ -310,6 +322,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
 
 
 

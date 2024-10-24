@@ -24,7 +24,6 @@ const salesReport = async (req,res)=>{
 // to generate sales report 
 const generate = async (req, res) => {
     const { startDate, endDate, frequency } = req.body;
-    console.log(startDate, endDate, frequency);
     
     const filter = {};
 
@@ -35,9 +34,23 @@ const generate = async (req, res) => {
         if (frequency === 'daily') {
             filter.orderDate = { $gte: new Date(now.setHours(0, 0, 0, 0)), $lte: new Date(now.setHours(23, 59, 59, 999)) };
         } else if (frequency === 'weekly') {
+            const now = new Date();
+            
+            // Get the first day of the current week (Sunday)
             const firstDayOfWeek = new Date(now);
             firstDayOfWeek.setDate(now.getDate() - now.getDay()); 
-            filter.orderDate = { $gte: firstDayOfWeek, $lte: new Date(firstDayOfWeek.setDate(firstDayOfWeek.getDate() + 6)) }; 
+            firstDayOfWeek.setHours(0, 0, 0, 0); 
+        
+            // Get the last day of the current week (Saturday)
+            const lastDayOfWeek = new Date(firstDayOfWeek);
+            lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+            lastDayOfWeek.setHours(23, 59, 59, 999); 
+        
+            // Filter to get orders within this week
+            filter.orderDate = { 
+                $gte: firstDayOfWeek, 
+                $lte: lastDayOfWeek 
+            };
         } else if (frequency === 'monthly') {
             const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); 
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
@@ -102,12 +115,23 @@ const pdf = async (req, res) => {
                     $gte: new Date(now.setHours(0, 0, 0, 0)),
                     $lte: new Date(now.setHours(23, 59, 59, 999)),
                 };
-            } else if (frequency === 'weekly') {
+            }  else if (frequency === 'weekly') {
+                const now = new Date();
+                
+                // Get the first day of the current week (Sunday)
                 const firstDayOfWeek = new Date(now);
-                firstDayOfWeek.setDate(now.getDate() - now.getDay());
-                filter.orderDate = {
-                    $gte: firstDayOfWeek,
-                    $lte: new Date(firstDayOfWeek.setDate(firstDayOfWeek.getDate() + 6)),
+                firstDayOfWeek.setDate(now.getDate() - now.getDay()); 
+                firstDayOfWeek.setHours(0, 0, 0, 0); 
+            
+                // Get the last day of the current week (Saturday)
+                const lastDayOfWeek = new Date(firstDayOfWeek);
+                lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+                lastDayOfWeek.setHours(23, 59, 59, 999); 
+            
+                // Filter to get orders within this week
+                filter.orderDate = { 
+                    $gte: firstDayOfWeek, 
+                    $lte: lastDayOfWeek 
                 };
             } else if (frequency === 'monthly') {
                 const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -206,12 +230,23 @@ const excelReport = async (req, res) => {
                     $gte: new Date(now.setHours(0, 0, 0, 0)),
                     $lte: new Date(now.setHours(23, 59, 59, 999)),
                 };
-            } else if (frequency === 'weekly') {
+            }  else if (frequency === 'weekly') {
+                const now = new Date();
+                
+                // Get the first day of the current week (Sunday)
                 const firstDayOfWeek = new Date(now);
-                firstDayOfWeek.setDate(now.getDate() - now.getDay());
-                filter.orderDate = {
-                    $gte: firstDayOfWeek,
-                    $lte: new Date(firstDayOfWeek.setDate(firstDayOfWeek.getDate() + 6)),
+                firstDayOfWeek.setDate(now.getDate() - now.getDay()); 
+                firstDayOfWeek.setHours(0, 0, 0, 0); // Reset time to midnight
+            
+                // Get the last day of the current week (Saturday)
+                const lastDayOfWeek = new Date(firstDayOfWeek);
+                lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+                lastDayOfWeek.setHours(23, 59, 59, 999); // Set time to end of the day
+            
+                // Filter to get orders within this week
+                filter.orderDate = { 
+                    $gte: firstDayOfWeek, 
+                    $lte: lastDayOfWeek 
                 };
             } else if (frequency === 'monthly') {
                 const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

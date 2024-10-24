@@ -170,95 +170,96 @@ document.getElementById('addProductModal').style.display = 'none';
 // add product modal validation
 
 function validateForm() {
-    let isValid = true;
-  
-    // Clear previous error messages
-    document.querySelectorAll('.error-message').forEach(el => el.innerHTML = '');
-  
-    // Validate product name
-    const name = document.getElementById('name').value.trim();
-    if (name === '') {
-        document.getElementById('nameError').innerHTML = 'Product name is required.';
-        isValid = false;
-        if(nameError){
-          setTimeout(()=>{
-            document.getElementById('nameError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    // Validate description
-    const description = document.getElementById('description').value.trim();
-    if (description === '') {
-        document.getElementById('descriptionError').innerHTML = 'Product description is required.';
-        isValid = false;
-        if(descriptionError){
-          setTimeout(()=>{
-            document.getElementById('descriptionError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    // Validate category
-    const categoryID = document.getElementById('categoryID').value;
-    if (!categoryID) {
-        document.getElementById('categoryError').innerHTML = 'Please select a category.';
-        isValid = false;
-        if(categoryError){
-          setTimeout(()=>{
-            document.getElementById('categoryError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    // Validate stock (must be a positive number)
-    const stock = document.getElementById('stock').value;
-    if (stock === '' || stock <= 0) {
-        document.getElementById('stockError').innerHTML = 'Please enter a valid stock number.';
-        isValid = false;
-        if(stockError){
-          setTimeout(()=>{
-            document.getElementById('stockError').innerHTML =""
-          },3000)
-        }
-  
-    }
-  
-    // Validate price (must be a positive number)
-    const price = document.getElementById('price').value;
-    if (price === '' || price <= 0) {
-        document.getElementById('priceError').innerHTML = 'Please enter a valid price.';
-        isValid = false;
-        if(priceError){
-          setTimeout(()=>{
-            document.getElementById('priceError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    // Validate colors (optional, but should not be empty if filled)
-    const colors = document.getElementById('colors').value.trim();
-    if (colors && !/^[a-zA-Z\s,]+$/.test(colors)) {
-        document.getElementById('colorsError').innerHTML = 'Colors must be comma-separated words.';
-        isValid = false;
-        if(colorsError){
-          setTimeout(()=>{
-            document.getElementById('colorsError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    // Validate image uploads (minimum 3 images required)
-    const imageInputs = document.querySelectorAll('.image-input');
-    if (imageInputs.length < 3) {
-        document.getElementById('imageError').innerHTML = 'Please upload at least 3 images.';
-        isValid = false;
-        if(imageError){
-          setTimeout(()=>{
-            document.getElementById('imageError').innerHTML =""
-          },3000)
-        }
-    }
-  
-    return isValid;
+  let isValid = true;
+
+  // Clear previous error messages
+  document.querySelectorAll('.error-message').forEach(el => el.innerHTML = '');
+
+  // Validate product name
+  const name = document.getElementById('name').value.trim();
+  const namePattern = /^(?=.*[a-zA-Z0-9]).+$/; // At least one alphanumeric character
+  if (!namePattern.test(name)) {
+      document.getElementById('nameError').innerHTML = 'Product name must contain at least one letter or number.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('nameError').innerHTML = '';
+      }, 3000);
   }
+
+  // Validate description
+  const description = document.getElementById('description').value.trim();
+  if (description === '') {
+      document.getElementById('descriptionError').innerHTML = 'Product description is required.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('descriptionError').innerHTML = '';
+      }, 3000);
+  }
+
+  // Validate category
+  const categoryID = document.getElementById('categoryID').value;
+  if (!categoryID) {
+      document.getElementById('categoryError').innerHTML = 'Please select a category.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('categoryError').innerHTML = '';
+      }, 3000);
+  }
+
+  // Validate stock (must be a positive number)
+  const stock = document.getElementById('stock').value;
+  if (stock === '' || stock <= 0) {
+      document.getElementById('stockError').innerHTML = 'Please enter a valid stock number.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('stockError').innerHTML = '';
+      }, 3000);
+  }
+
+  // Validate price (must be a positive number)
+  const price = document.getElementById('price').value;
+  if (price === '' || price <= 0) {
+      document.getElementById('priceError').innerHTML = 'Please enter a valid price.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('priceError').innerHTML = '';
+      }, 3000);
+  }
+
+  // Validate colors (optional, but should not be empty if filled)
+  const colors = document.getElementById('colors').value.trim();
+  if (colors && !/^[a-zA-Z\s,]+$/.test(colors)) {
+      document.getElementById('colorsError').innerHTML = 'Colors must be comma-separated words.';
+      isValid = false;
+      setTimeout(() => {
+          document.getElementById('colorsError').innerHTML = '';
+      }, 3000);
+  }
+
+     // Validate image uploads (minimum 3 images required)
+     const imageInputs = document.querySelectorAll('.image-input');
+     if (imageInputs.length < 3) {
+         document.getElementById('imageError').innerHTML = 'Please upload at least 3 images.';
+         isValid = false;
+         setTimeout(() => {
+             document.getElementById('imageError').innerHTML = '';
+         }, 3000);
+     } else {
+         // Validate image types
+         imageInputs.forEach(input => {
+             const file = input.files[0];
+             if (file) {
+                 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                 if (!validImageTypes.includes(file.type)) {
+                     document.getElementById('imageError').innerHTML = 'Please upload valid image files (JPEG, PNG, GIF).';
+                     isValid = false;
+                     setTimeout(() => {
+                         document.getElementById('imageError').innerHTML = '';
+                     }, 3000);
+                 }
+             }
+         });
+     }
+
+  return isValid;
+}

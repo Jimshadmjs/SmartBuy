@@ -189,10 +189,12 @@
             <div>
                 <label for="editName">Product Name:</label>
                 <input type="text" id="editName" name="name" required>
+                <div class="error-message" id="editNameError"></div>
             </div>
             <div>
                 <label for="editDescription">Description:</label>
                 <textarea id="editDescription" name="description" required></textarea>
+                <div class="error-message" id="editDescriptionError"></div>
             </div>
             <div>
                 <label for="editCategoryID">Category:</label>
@@ -204,21 +206,28 @@
                             </option>
                         <% } %>
                     <% }); %>
-                 
                 </select>
+                <div class="error-message" id="editCategoryError"></div>
             </div>
             <div>
                 <label for="editStock">Stock:</label>
                 <input type="number" id="editStock" name="stock" required>
+                <div class="error-message" id="editStockError"></div>
             </div>
             <div>
                 <label for="editPrice">Price:</label>
                 <input type="number" step="0.01" id="editPrice" name="price" required>
+                <div class="error-message" id="editPriceError"></div>
             </div>
             <div>
                 <label for="editColors">Colors:</label>
                 <input type="text" id="editColors" name="colors" required>
+                <div class="error-message" id="editColorsError"></div>
             </div>
+            <div>
+                <div class="error-message" id="editImageError"></div>
+            </div>
+            
 
             <!-- Current images section -->
             <div id="editCurrentImages">
@@ -236,14 +245,92 @@
 
 
 
-    
-    
 
     <script src="/js/admin/products.js"> </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
 
     <script>
+        function validateEditProductForm() {
+    let isValid = true;
+
+    // Clear previous error messages
+    document.querySelectorAll('.error-message').forEach(el => el.innerHTML = '');
+
+    // Validate product name
+    const name = document.getElementById('editName').value.trim();
+    const namePattern = /^(?=.*[a-zA-Z0-9]).+$/; // At least one alphanumeric character
+    if (!namePattern.test(name)) {
+        document.getElementById('editNameError').innerHTML = 'Product name must contain at least one letter or number.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editNameError').innerHTML = '';
+        }, 3000);
+    }
+
+    // Validate description
+    const description = document.getElementById('editDescription').value.trim();
+    if (description === '') {
+        document.getElementById('editDescriptionError').innerHTML = 'Product description is required.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editDescriptionError').innerHTML = '';
+        }, 3000);
+    }
+
+    // Validate category
+    const categoryID = document.getElementById('editCategoryID').value;
+    if (!categoryID) {
+        document.getElementById('editCategoryError').innerHTML = 'Please select a category.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editCategoryError').innerHTML = '';
+        }, 3000);
+    }
+
+    // Validate stock (must be a positive number)
+    const stock = document.getElementById('editStock').value;
+    if (stock === '' || stock <= 0) {
+        document.getElementById('editStockError').innerHTML = 'Please enter a valid stock number.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editStockError').innerHTML = '';
+        }, 3000);
+    }
+
+    // Validate price (must be a positive number)
+    const price = document.getElementById('editPrice').value;
+    if (price === '' || price <= 0) {
+        document.getElementById('editPriceError').innerHTML = 'Please enter a valid price.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editPriceError').innerHTML = '';
+        }, 3000);
+    }
+
+    // Validate colors (optional, but should not be empty if filled)
+    const colors = document.getElementById('editColors').value.trim();
+    if (colors && !/^[a-zA-Z\s,]+$/.test(colors)) {
+        document.getElementById('editColorsError').innerHTML = 'Colors must be comma-separated words.';
+        isValid = false;
+        setTimeout(() => {
+            document.getElementById('editColorsError').innerHTML = '';
+        }, 3000);
+    }
+
+   
+
+    return isValid;
+}
+
+
+
+
+
+
+
+
+
         function editProduct(productId) {
             fetch(`/admin/products/${productId}`)
                 .then(response => response.json())
@@ -259,7 +346,7 @@
     
                     // Display current images
                     const currentImagesContainer = document.getElementById('editCurrentImages');
-                    currentImagesContainer.innerHTML = ''; // Clear previous images
+                    currentImagesContainer.innerHTML = ''; 
     
                     if (Array.isArray(product.images) && product.images.length > 0) {
                         product.images.forEach((image, index) => {
@@ -307,8 +394,11 @@
         }
     
         document.getElementById('editProductForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault(); 
     
+            if (!validateEditProductForm()) {
+            return; // Stop submission if validation fails
+             }
             const editProductId = document.getElementById('editProductId').value.trim();
             const editName = document.getElementById('editName').value.trim();
             const editDescription = document.getElementById('editDescription').value.trim();
