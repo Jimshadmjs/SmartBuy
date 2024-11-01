@@ -5,41 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="/css/admin/main.css">
-    <link rel="stylesheet" href="/css/admin/dashboard.css"> <!-- New CSS for dashboard -->
+    <link rel="stylesheet" href="/css/admin/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js for graphs -->
 </head>
 <style>
     .report-summary {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
-}
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+    }
 
-.report-card {
-    background-color: #444;
-    padding: 20px;
-    border-radius: 10px;
-    width: 30%;
-    color: #fff;
-    text-align: center;
-}
+    .report-card {
+        background-color: #444;
+        padding: 20px;
+        border-radius: 10px;
+        width: 30%;
+        color: #fff;
+        text-align: center;
+    }
 
-.view-report-btn {
-    padding: 10px 20px;
-    background-color: #6d60e4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
+    .view-report-btn {
+        padding: 10px 20px;
+        background-color: #6d60e4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 
-.view-report-btn:hover {
-    background-color: #422feb;
-}
+    .view-report-btn:hover {
+        background-color: #422feb;
+    }
 
+    .salesChart {
+        height: 5 00px;
+        max-width: 600px;
+        margin: 20px auto;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #444;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #444;
+        color: #fff;
+    }
+    .filter-buttons{
+        display: flex;
+        justify-content: center;
+    }
+    .filter-buttons button{
+        margin-right: 50px;
+        background-color: #6d60e4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        padding: 10px;
+
+    }
+    .filter-buttons button:hover {
+        background-color: #422feb;
+    }
+    .bst-selling{
+        display: flex;
+        justify-content: center;
+    }
+    #bestSellingCategoriesTable{
+        margin-left: 10px;
+    }
+    #bestSellingProductsTable{
+        margin-left: 10px;
+    }
+    .graphs{
+        display: flex;
+        margin-left: 20px;
+        height: 500px;
+    }
 </style>
 <body>
     <!-- Sidebar -->
-   <%- include('partials/_sidebar') %>
+    <%- include('partials/_sidebar') %>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -56,31 +111,164 @@
             </div>
             <div class="report-card">
                 <h3>Total Revenue</h3>
-                <p id="totalRevenue">$0.00</p>
+                <p id="totalRevenue">0.00</p>
             </div>
             <div class="report-card">
-                <h3>Total Discounts</h3>
-                <p id="totalDiscount">$0.00</p>
+                <h3>Total Users</h3>
+                <p id="totalUsers">0.00</p>
             </div>
         </div>
         <button class="view-report-btn" onclick="window.location.href='/admin/sales-report'">View Sales Report</button>
+
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button onclick="fetchDashboardData('weekly')">Weekly</button>
+            <button onclick="fetchDashboardData('monthly')">Monthly</button>
+            <button onclick="fetchDashboardData('yearly')">Yearly</button>
+        </div>
+
+        <!-- Chart for Sales Data -->
+        <!-- <canvas id="salesChart"></canvas> -->
+          <div class="graphs">
+            <canvas id="totalSalesChart" class="salesChart"></canvas>
+            <canvas id="totalRevenueChart"  class="salesChart"></canvas>
+        </div>
+
+        <!-- Best Selling Products Table -->
+        <h3 class="bst-selling">Best Selling Products</h3>
+        <table id="bestSellingProductsTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Total Revenue</th>
+                    <th>Total Quantity Sold</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Best Selling Categories Table -->
+        <h3 class="bst-selling">Best Selling Categories</h3>
+        <table id="bestSellingCategoriesTable">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Total Revenue</th>
+                    <th>Total Quantity Sold</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        async function fetchSalesSummary() {
+        let totalSalesChart; 
+        let totalRevenueChart;
+    
+        const fetchDashboardData = async (filter) => {
             try {
-                const response = await axios.get('/api/sales-summary');
-                document.getElementById('totalSalesCount').innerText = response.data.totalSalesCount;
-                document.getElementById('totalRevenue').innerText = `$${response.data.totalRevenue.toFixed(2)}`;
-                document.getElementById('totalDiscount').innerText = `$${response.data.totalDiscount.toFixed(2)}`;
+                const response = await axios.get(`/admin/dashboard-data`, { params: { filter } });
+                const data = response.data;
+    
+                // Update summary
+                document.getElementById('totalSalesCount').innerText = data.totalOrders;
+                document.getElementById('totalRevenue').innerText = `₹${data.totalAmount.toFixed(2)}`;
+                document.getElementById('totalUsers').innerText = `${data.users || 0.00}`;
+    
+                // Update charts
+                updateSalesCharts(data);
+    
+                // Populate best selling products
+                populateTable('bestSellingProductsTable', data.bestSellingProducts);
+    
+                // Populate best selling categories
+                populateTable('bestSellingCategoriesTable', data.bestSellingCategories);
             } catch (error) {
-                console.error('Error fetching sales summary:', error);
+                console.error('Error fetching dashboard data:', error);
             }
-        }
-
-        // Call the function when the dashboard loads
-        fetchSalesSummary();
+        };
+    
+        const updateSalesCharts = (data) => {
+            const salesCtx = document.getElementById('totalSalesChart').getContext('2d');
+            const revenueCtx = document.getElementById('totalRevenueChart').getContext('2d');
+    
+            // Data for Total Sales Chart
+            const salesChartData = {
+                labels: ['Total Sales'],
+                datasets: [{
+                    label: 'Sales Data',
+                    data: [data.totalOrders],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+    
+            // Data for Total Revenue Chart
+            const revenueChartData = {
+                labels: ['Total Revenue'],
+                datasets: [{
+                    label: 'Revenue Data',
+                    data: [data.totalAmount],
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            };
+    
+            // Destroy previous chart instances if they exist
+            if (totalSalesChart) {
+                totalSalesChart.destroy();
+            }
+            if (totalRevenueChart) {
+                totalRevenueChart.destroy();
+            }
+    
+            // Create new chart instances
+            totalSalesChart = new Chart(salesCtx, {
+                type: 'bar',
+                data: salesChartData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+    
+            totalRevenueChart = new Chart(revenueCtx, {
+                type: 'bar',
+                data: revenueChartData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        };
+    
+        const populateTable = (tableId, items) => {
+            const tableBody = document.getElementById(tableId).querySelector('tbody');
+            tableBody.innerHTML = ''; 
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item._id || item.category || item.productName}</td>
+                    <td>${item.totalRevenue || '0.00'}</td>
+                    <td>${item.totalQuantity || '0'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        };
+    
+        // Initial fetch for dashboard data
+        fetchDashboardData('weekly'); 
     </script>
+    
+    
 </body>
 </html>

@@ -98,8 +98,7 @@ function cropImage(index) {
         const base64Image = croppedCanvas.toDataURL("image/jpeg");
         console.log("diid");
         
-        croppedImages[index] = base64Image; // Store base64 image in the array
-
+        croppedImages[index] = base64Image; 
         // Convert Base64 to File
         const file = base64ToFile(croppedImages[index],` image[${index}].png`);
         console.log("diid");

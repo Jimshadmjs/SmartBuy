@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sortedProducts = products.sort((a, b) => {
                         const ratingA = parseFloat(a.getAttribute('data-rating')) || 0;
                         const ratingB = parseFloat(b.getAttribute('data-rating')) || 0;
-                        return ratingB - ratingA; // Higher ratings come first
+                        return ratingB - ratingA; 
                     });
                     break;
             case 'newness':
@@ -227,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         productContainer.innerHTML = '';
 
         sortedProducts.forEach(product => {
+            console.log(product);
+            
             productContainer.appendChild(product);
         });
     }

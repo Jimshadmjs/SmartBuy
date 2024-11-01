@@ -9,6 +9,7 @@ const CartSchema = require('../../models/cartModel')
 const offerSchema = require('../../models/offerModel')
 const wishlistSchema = require('../../models/wishlistModel')
 const walletSchema = require('../../models/walletModel')
+const PDFDocument = require('pdfkit');
 const mongoose = require('mongoose');
 require("dotenv").config()
 
@@ -25,11 +26,14 @@ const profile = async (req, res) => {
 
         const addresses = await addressSchema.find({ user: userId });
 
-        // Fetch the wallet details for the user
         const wallet = await walletSchema.findOne({userId }) || { 
                     balance: 0, 
                     transactions: [] 
                 };
+
+        const latestTransactions = wallet.transactions
+        .sort((a, b) => b.date - a.date) 
+        .slice(0, 6);
 
         const page = parseInt(req.query.page) || 1;
         const limit = 5; 
@@ -51,7 +55,10 @@ const profile = async (req, res) => {
             orders, 
             currentPage: page, 
             totalPages,
-            wallet
+            wallet: {
+                balance: wallet.balance,
+                transactions: latestTransactions 
+            }
         });
     } catch (err) {
         console.error(err);
@@ -263,6 +270,91 @@ const orderDetails = async (req, res) => {
 
 
 
+// to download invoice
+const generateInvoice = async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+        const order = await orderSchema.findById(orderId).populate('items.productID');
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        const filename = `Invoice_${orderId}.pdf`;
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', 'application/pdf');
+
+        doc.pipe(res);
+
+        const rowHeight = 30;
+        let x = 50, y = 220; // Starting position
+
+        // Title
+        doc.fontSize(25).text('Invoice', { align: 'center' });
+        doc.moveDown();
+
+        // Order Date
+        const orderDate = `Order Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`;
+        doc.fontSize(12).text(orderDate, { align: 'center' }).moveDown();
+
+        // Shipping Address
+        doc.text('Shipping Address:', { underline: true, fontSize: 14 });
+        doc.text(`${order.shippingAddress.fullname}`, { align: 'left' });
+        doc.text(`${order.shippingAddress.address}`, { align: 'left' });
+        doc.text(`Pincode: ${order.shippingAddress.pincode}`, { align: 'left' });
+        doc.moveDown(); // Add space before the table
+
+        // Table headers
+        const headers = ['Product Name', 'Quantity', 'Price', 'Total'];
+        const widths = [200, 100, 100, 100];
+
+        // Draw header row
+        headers.forEach((header, index) => {
+            doc.rect(x, y, widths[index], rowHeight).stroke();
+            doc.fontSize(10).text(header, x + 5, y + 10, { width: widths[index], align: 'center' });
+            x += widths[index];
+        });
+
+        x = 50; // Reset x position for the first row
+        y += rowHeight; // Move down for the next row
+
+        // Draw product rows
+        let totalAmount = 0;
+        order.items.forEach(item => {
+            const price = item.productID.price;
+            const quantity = item.quantity;
+            const rowTotal = price * quantity;
+            totalAmount += rowTotal;
+
+            const row = [
+                item.productID.name,
+                quantity,
+                `${price.toFixed(2)}`,
+                `${rowTotal.toFixed(2)}`
+            ];
+
+            row.forEach((cell, index) => {
+                doc.rect(x, y, widths[index], rowHeight).stroke();
+                doc.fontSize(8).text(cell, x + 5, y + 10, { width: widths[index], align: 'center' });
+                x += widths[index];
+            });
+
+            x = 50; // Reset x position for the next row
+            y += rowHeight; // Move down for the next row
+        });
+
+        // Add space before the total amount row
+        y += 10; // Add extra space before total amount
+        doc.fontSize(10).text(`Total Amount: ${totalAmount.toFixed(2)}`, 55, y + 10, { align: 'right' });
+
+        doc.end();
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).send('An error occurred while generating the PDF.');
+    }
+};
+
+
+
 
 
 module.exports={
@@ -273,5 +365,6 @@ module.exports={
     updateDetails,
     cancelOrder,
     orderDetails,
-    returnOrder
+    returnOrder,
+    generateInvoice
 }

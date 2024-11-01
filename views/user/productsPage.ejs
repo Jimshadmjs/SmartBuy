@@ -272,6 +272,7 @@
                             <% if (product.offer.hasOffer) { %>
                                 <span style="text-decoration: line-through; color: red;">₹<%= product.price %></span>
                                 <span style="color: green;"> ₹<%= product.offer.discountedPrice %></span>
+                                <span style=" font-size: x-small;">(<%= product.offer.offerPercentage %>% Off)</span>
                             <% } else { %>
                                 ₹<%= product.price %>
                             <% } %>

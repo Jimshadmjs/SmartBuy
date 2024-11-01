@@ -1,20 +1,20 @@
-                
-        // order----------------------------------------------------------------------------------------------------
-        
-        
+
+// order----------------------------------------------------------------------------------------------------
+
+
 
 
 
 document.addEventListener('DOMContentLoaded', function () {
     const cancelOrderButtons = document.querySelectorAll('.cancelOrder');
-    let orderIdToCancel = null; 
-    let modal; 
+    let orderIdToCancel = null;
+    let modal;
 
     cancelOrderButtons.forEach(button => {
         button.addEventListener('click', function () {
             orderIdToCancel = this.getAttribute('data-id');
-            modal = new bootstrap.Modal(document.getElementById('cancelOrderModal')); 
-            modal.show(); 
+            modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+            modal.show();
         });
     });
 
@@ -27,16 +27,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        
+
         axios.post(`/order/cancel/${orderIdToCancel}`, { reason })
             .then(response => {
-                modal.hide(); 
+                modal.hide();
                 Swal.fire('Cancelled!', response.data.message, 'success').then(() => {
-                    location.reload(); 
+                    location.reload();
                 });
             })
             .catch(error => {
-                modal.hide(); 
+                modal.hide();
                 Swal.fire('Error!', error.response.data.message || 'Something went wrong!', 'error');
             });
     });
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => {
                     const order = response.data;
                     console.log(order);
-                    
+
                     // Populate the modal with order details
                     const orderedDate = new Date(order.orderedDate);
                     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('orderTime').innerText = new Date(order.orderedDate).toLocaleTimeString();
                     document.getElementById('orderStatus').innerText = order.orderStatus;
                     document.getElementById('shippingAddress').innerText = `${order.shippingAddress.fullname}, ${order.shippingAddress.address},  ${order.shippingAddress.pincode}`;
-                    
+
                     const productsContainer = document.getElementById('orderedProducts');
                     productsContainer.innerHTML = ''; // Clear previous content
-                    
+
                     order.items.forEach(item => {
                         productsContainer.innerHTML += `
                             <div class="col-md-4">
@@ -90,6 +90,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     document.getElementById('totalAmount').innerText = `₹${order.totalAmount}`;
 
+                     // Show or hide the download invoice button
+                     const downloadInvoiceButton = document.getElementById('downloadInvoice');
+                     if (order.orderStatus === 'Delivered') {
+                         downloadInvoiceButton.style.display = 'block';
+                         downloadInvoiceButton.onclick = () => downloadInvoice(orderId);
+                     } else {
+                         downloadInvoiceButton.style.display = 'none';
+                    }
+
                     // Show the modal
                     const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
                     modal.show();
@@ -100,6 +109,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     });
+
+        // Function to trigger invoice download
+        function downloadInvoice(orderId) {
+            axios.get(`/invoice/${orderId}`, { responseType: 'blob' })
+                .then(response => {
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Invoice_${orderId}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                })
+                .catch(error => {
+                    console.error('Error downloading invoice:', error);
+                    alert('Failed to download the invoice.');
+                });
+        }
 });
 
 
@@ -123,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // Handle delete address
-    addressList.addEventListener('click', function(e) {
+    addressList.addEventListener('click', function (e) {
         if (e.target.classList.contains('deleteAddress')) {
             const addressId = e.target.dataset.id;
             const confirmation = confirm("Are you sure you want to delete this address?");
@@ -151,23 +178,23 @@ document.addEventListener('DOMContentLoaded', function () {
     openModalBtn.addEventListener('click', function () {
         addressForm.reset();
         clearValidationMessages();
-        document.getElementById('addressId').value = ''; 
+        document.getElementById('addressId').value = '';
         document.getElementById('addressModalLabel').innerText = 'Add New Address';
         submitAddressBtn.innerText = 'Add Address';
-        addressModal.show(); 
+        addressModal.show();
     });
 
     // Close modal
     closeModalBtns.forEach(btn => {
         btn.addEventListener('click', function () {
-            addressModal.hide(); 
+            addressModal.hide();
         });
     });
 
     // Handle Add/Edit Address
     submitAddressBtn.addEventListener('click', function () {
         const addressId = document.getElementById('addressId').value;
-        if (addressId) {            
+        if (addressId) {
             editAddress(addressId);
         } else {
             addAddress();
@@ -175,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Open modal to edit an address
-    document.getElementById('addressList').addEventListener('click', function(e) {
+    document.getElementById('addressList').addEventListener('click', function (e) {
         if (e.target.classList.contains('editAddress')) {
             const button = e.target;
             document.getElementById('addressId').value = button.dataset.id;
@@ -188,11 +215,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('pincode').value = button.dataset.pincode;
             document.getElementById('country').value = button.dataset.country;
             document.getElementById('addressType').value = button.dataset.type;
-            
+
 
             document.getElementById('addressModalLabel').innerText = 'Edit Address';
             submitAddressBtn.innerText = 'Update Address';
-            addressModal.show(); 
+            addressModal.show();
         }
     });
 
@@ -202,11 +229,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const addressData = getAddressData();
         if (validateForm(addressData)) {
             console.log(userId);
-            
+
             axios.post(`/addAddress/${userId}`, addressData)
                 .then(response => {
                     console.log('Address added:', response.data);
-                    addressModal.hide(); 
+                    addressModal.hide();
                     addressForm.reset();
                     location.reload()
                 })
@@ -218,22 +245,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // edit address
 
-   async function editAddress(addressId) {
+    async function editAddress(addressId) {
         const addressData = getAddressData();
         if (validateForm(addressData)) {
             try {
-            const response = await axios.patch(`/editAddress/${addressId}`, addressData);
-            if (response.status === 200) {
-                console.log("Address updated successfully");
-                addressModal.hide();
-                addressForm.reset();
-                location.reload()
-            } else {
-                console.error("Failed to update address", response);
+                const response = await axios.patch(`/editAddress/${addressId}`, addressData);
+                if (response.status === 200) {
+                    console.log("Address updated successfully");
+                    addressModal.hide();
+                    addressForm.reset();
+                    location.reload()
+                } else {
+                    console.error("Failed to update address", response);
+                }
+            } catch (error) {
+                console.error('Error updating address:', error);
             }
-        } catch (error) {
-            console.error('Error updating address:', error);
-        }
         }
     }
 
@@ -254,54 +281,54 @@ document.addEventListener('DOMContentLoaded', function () {
     function validateForm(data) {
         let isValid = true;
         clearValidationMessages();
-    
-        const nameRegex = /^[a-zA-Z\s]+$/; 
-        const phoneRegex = /^[1-9][0-9]{9}$/; 
-        const pincodeRegex = /^[1-9][0-9]{5}$/; 
-    
+
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        const phoneRegex = /^[1-9][0-9]{9}$/;
+        const pincodeRegex = /^[1-9][0-9]{5}$/;
+
         if (!data.fullName || !nameRegex.test(data.fullName)) {
             displayError('fullNameError', 'Full Name must contain only letters and spaces.');
             isValid = false;
         }
-    
+
         if (!data.phone || !phoneRegex.test(data.phone)) {
             displayError('phoneError', 'Phone number must be 10 digits and cannot start with 0.');
             isValid = false;
         }
-    
+
         if (!data.address.trim()) {
             displayError('addressError', 'Address cannot be empty or whitespace.');
             isValid = false;
         }
-    
+
         if (!data.district.trim()) {
             displayError('districtError', 'District cannot be empty or whitespace.');
             isValid = false;
         }
-    
+
         if (!data.city.trim()) {
             displayError('cityError', 'City cannot be empty or whitespace.');
             isValid = false;
         }
-    
+
         if (!data.state.trim()) {
             displayError('stateError', 'State cannot be empty or whitespace.');
             isValid = false;
         }
-    
+
         if (!data.pincode || !pincodeRegex.test(data.pincode)) {
             displayError('pincodeError', 'Pincode must be 6 digits and cannot start with 0.');
             isValid = false;
         }
-    
+
         if (!data.country.trim()) {
             displayError('countryError', 'Country cannot be empty or whitespace.');
             isValid = false;
         }
-    
+
         return isValid;
     }
-    
+
 
     function displayError(elementId, message) {
         const errorElement = document.getElementById(elementId);
@@ -332,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 document.getElementById('profileForm').addEventListener('submit', function (e) {
-    e.preventDefault(); 
+    e.preventDefault();
 
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;
@@ -363,13 +390,13 @@ document.getElementById('profileForm').addEventListener('submit', function (e) {
 // to reset password
 
 
-document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+document.getElementById('resetPasswordBtn').addEventListener('click', function () {
     const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
     modal.show();
     resetValidationMessages();
 });
 
-document.getElementById('submitResetPassword').addEventListener('click', function() {
+document.getElementById('submitResetPassword').addEventListener('click', function () {
     validateAndSubmit();
 });
 
@@ -377,11 +404,11 @@ document.getElementById('currentEmail').addEventListener('input', validateEmail)
 document.getElementById('currentPassword').addEventListener('input', validateCurrentPassword);
 document.getElementById('newPassword').addEventListener('input', validateNewPassword);
 
-document.getElementById('toggleCurrentPassword').addEventListener('click', function() {
+document.getElementById('toggleCurrentPassword').addEventListener('click', function () {
     togglePasswordVisibility('currentPassword', 'currentPasswordIcon');
 });
 
-document.getElementById('toggleNewPassword').addEventListener('click', function() {
+document.getElementById('toggleNewPassword').addEventListener('click', function () {
     togglePasswordVisibility('newPassword', 'newPasswordIcon');
 });
 
@@ -426,35 +453,35 @@ function validateAndSubmit() {
     };
 
     axios.patch(`/resetPassword/${userId}`, data)
-    .then(response => {
-        Swal.fire({
-            title: 'Success!',
-            text: 'Password updated successfully!',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        }).then(() => {
-            location.reload();
+        .then(response => {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Password updated successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                location.reload();
+            });
+        })
+        .catch(error => {
+            if (error.response) {
+
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.response.data.message || 'Failed to update password. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred. Please try again later.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
-    })
-    .catch(error => {
-        if (error.response) {
-            
-            Swal.fire({
-                title: 'Error!',
-                text: error.response.data.message || 'Failed to update password. Please try again.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        } else {
-           
-            Swal.fire({
-                title: 'Error!',
-                text: 'An error occurred. Please try again later.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    });
 }
 
 
@@ -463,7 +490,7 @@ function validateEmail() {
     if (!emailField.value) {
         showError('currentEmail', 'This field is required');
     } else {
-        clearError('currentEmail'); 
+        clearError('currentEmail');
     }
 }
 
@@ -493,7 +520,7 @@ function togglePasswordVisibility(fieldId, iconId) {
     const passwordField = document.getElementById(fieldId);
     const icon = document.getElementById(iconId);
     const isPasswordVisible = passwordField.type === 'text';
-    
+
     passwordField.type = isPasswordVisible ? 'password' : 'text';
     icon.classList.toggle('bi-eye', !isPasswordVisible);
     icon.classList.toggle('bi-eye-slash', isPasswordVisible);
@@ -502,7 +529,7 @@ function togglePasswordVisibility(fieldId, iconId) {
 function showError(fieldId, message) {
     const field = document.getElementById(fieldId);
     const existingError = field.parentNode.querySelector('.form-text.text-danger');
-    
+
     if (!existingError) {
         const errorMessage = document.createElement('small');
         errorMessage.className = 'form-text text-danger';
@@ -514,7 +541,7 @@ function showError(fieldId, message) {
 function clearError(fieldId) {
     const field = document.getElementById(fieldId);
     const existingError = field.parentNode.querySelector('.form-text.text-danger');
-    
+
     if (existingError) {
         existingError.remove();
     }
@@ -524,3 +551,40 @@ function resetValidationMessages() {
     const errorMessages = document.querySelectorAll('.form-text.text-danger');
     errorMessages.forEach(msg => msg.remove());
 }
+
+
+// show tansaction modal
+document.addEventListener('DOMContentLoaded', () => {
+    const viewTransactionsButton = document.getElementById('viewTransactionsButton');
+    const transactionsModal = document.getElementById('transactionsModal');
+
+    viewTransactionsButton.addEventListener('click', async () => {
+        try {
+            const response = await axios.get('/wallet/transactions');
+            const transactions = response.data;
+
+            const transactionsContainer = document.getElementById('transactionsContainer');
+            transactionsContainer.innerHTML = '';
+
+            transactions.forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'list-group-item';
+                transactionItem.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <strong>${transaction.type}</strong>
+                        <small>${new Date(transaction.date).toLocaleDateString('en-IN')}</small>
+                    </div>
+                    <p class="mb-1">Amount: <span class="text-success">${transaction.amount}</span></p>
+                    <small>${transaction.description}</small>
+                `;
+                transactionsContainer.appendChild(transactionItem);
+            });
+
+            // Show the modal after loading transactions
+            const modal = new bootstrap.Modal(transactionsModal);
+            modal.show();
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+        }
+    });
+});

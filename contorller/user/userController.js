@@ -387,6 +387,7 @@ const shop = async (req, res) => {
 
   // Fetch category offers
   const categoryIds = products.map(product => product.categoryID);
+
   const categoryOffers = await offerSchema.find({
       isActive: true,
       targetType: 'Category',
@@ -419,13 +420,19 @@ const shop = async (req, res) => {
       // Determine the best offer
       let bestDiscountedPrice = null;
       let hasOffer = false;
+      let bestOfferPercentage = 0
 
       if (productDiscountedPrice && categoryDiscountedPrice) {
           bestDiscountedPrice = Math.min(productDiscountedPrice, categoryDiscountedPrice);
+          bestOfferPercentage = bestDiscountedPrice < originalPrice 
+          ? Math.round(((originalPrice - bestDiscountedPrice) / originalPrice) * 100) 
+          : 0;
       } else if (productDiscountedPrice) {
           bestDiscountedPrice = productDiscountedPrice;
+          bestOfferPercentage = Math.round(((originalPrice - bestDiscountedPrice) / originalPrice) * 100);
       } else if (categoryDiscountedPrice) {
           bestDiscountedPrice = categoryDiscountedPrice;
+          bestOfferPercentage = Math.round(((originalPrice - bestDiscountedPrice) / originalPrice) * 100);
       }
 
       if (bestDiscountedPrice) {
@@ -445,11 +452,12 @@ const shop = async (req, res) => {
           category: product.categoryID ? product.categoryID.name : 'Unknown',
           offer: hasOffer ? {
               discountedPrice: bestDiscountedPrice,
-              hasOffer: true
+              hasOffer: true,
+              offerPercentage:bestOfferPercentage
           } : { hasOffer: false }
       };
   });
-5
+
   const categories = await categorySchema.find();
 
   if (req.session.user) {

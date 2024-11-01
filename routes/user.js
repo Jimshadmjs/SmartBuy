@@ -78,14 +78,16 @@ router.patch('/resetPassword/:userId',userController.resetPassword)
 
 
 router.post('/cart/applyCoupon',cartController.applyCoupon)
+router.post('/cart/removeCoupon',cartController.removeCoupon)
 
-
-router.get('/wishlist',wishlistController.wishlist)
+router.get('/wishlist',user.checkSession,wishlistController.wishlist)
 router.post('/wishlist/add/:productId',wishlistController.addWishlist)
 router.delete('/wishlist/remove',wishlistController.removeFromWishlist)
 
 
-
+router.get('/wallet/transactions',wallerController.transaction)
 router.post('/wallet/add-funds',wallerController.add_fund)
+
+router.get('/invoice/:orderId',profileController.generateInvoice)
 
 module.exports = router;

@@ -63,8 +63,14 @@ const cart = async (req,res)=>{
         const totalItems = await CartSchema.countDocuments({ userId: user });
         const totalPages = Math.ceil(totalItems / pages);
 
+        if(req.session.coupon){
+
+         const coupon = await couponSchema.findOne({couponCode:req.session.coupon})
+        cartTotal = cartTotal - coupon.discountAmount
+            
+         }
+
        const cart = await CartSchema.findOneAndUpdate({ userId: user },{totalPrice:cartTotal},{ new: true })
-       console.log(cart);   
        
        if(cart){
         cartTotal = cart.totalPrice 
@@ -87,11 +93,14 @@ const cart = async (req,res)=>{
 //add to cart
 const addCart = async (req,res)=>{
     const { productId, name, price, quantity, imageUrl } = req.body;
-    const user = req.params.id;
+    const user = req.session.user._id;
+    
     console.log(productId, name, price, quantity, imageUrl);
     
     try {
+
         const product = await productSchema.findById(productId);
+
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
@@ -336,7 +345,7 @@ const checkout = async (req, res) => {
     // Now you can access the totalPrice from the cart
     const totalPriceFromSchema = cart.totalPrice;
     
-
+    let coupon = req.session.coupon
     // Calculate the final total
     let total = totalPriceFromSchema - discount + deliveryFee;
 
@@ -348,7 +357,8 @@ const checkout = async (req, res) => {
         discount,
         deliveryFee,
         total,
-        totalPriceFromSchema 
+        totalPriceFromSchema,
+        coupon
     });
 };
 
@@ -361,8 +371,13 @@ const placeOrder =  async (req, res) => {
         const userId = req.params.id;
         const { selectedAddress, fullName, address, pincode, phone, paymentMethod } = req.body;
 
+        if(req.session.coupon){
+            req.session.coupon = null
+        }
+
         const cart = await CartSchema.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) return res.status(400).send('Your cart is empty');
+
 
         const outOfStockProducts = [];
         const orderItems = [];
@@ -371,6 +386,7 @@ const placeOrder =  async (req, res) => {
         // Check product stock
         for (const item of cart.items) {
             const product = item.productId;
+            if(!product.isListed) return res.status(400).json({message:`${product.name} is currently unavailable`})
             if (product.stock < item.quantity) {
                 outOfStockProducts.push(product.name);
             } else {
@@ -395,6 +411,7 @@ const placeOrder =  async (req, res) => {
 
          sum -= cart.totalPrice
          
+         if(paymentMethod == 'cashOnDelivery' && totalAmount>1000) return res.status(400).json({message:`Above 1000 can't use cash on delivery ! `})
         
         // Create a new order
         const newOrder = new orderSchema({
@@ -459,17 +476,14 @@ const placeOrder =  async (req, res) => {
 //to controll rozarpay
 
 
-// Function to handle Razorpay payment
+// Function to handle Razorpay payment if failure
 const handleRazorpayPayment = async (req, res) => {
     try {
-        console.log("hai njan ivide ethiii ");
         
         const { id } = req.params;
         const {orderId}=req.body
-        console.log("gaihouijejwhs",id);
         
         const order = await orderSchema.findOne({ razorpayOrderId: orderId });
-        console.log("hai",order)
         
         if (order) {
             order.paymentStatus = 'Failed';
@@ -488,7 +502,7 @@ const handleRazorpayPayment = async (req, res) => {
     }
 }
   
-
+// razorpay success
 const paymentSucess =async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -505,8 +519,8 @@ const paymentSucess =async (req, res) => {
 }
 
 
+// razorpay retrypeyment
 const retryPayment=async (req, res) => {
-    console.log("endhlla viswshem");
     try {
         const { orderId } = req.params;
         console.log(orderId);
@@ -631,9 +645,9 @@ const applyCoupon = async (req, res) => {
             discount = (cart.totalPrice * coupon.discountAmount) /100;
         }
 
-        const total = cart.totalPrice - coupon.discountAmount;
+        // const total = cart.totalPrice - coupon.discountAmount;
         
-        const newTotal = Math.max(total - discount, 0);
+        const newTotal = Math.max(cart.totalPrice - discount, 0);
         
         if(newTotal<100) return res.status(400).json({ message: `This coupon Can't Use Cart Min Amount is 100` });
 
@@ -641,7 +655,7 @@ const applyCoupon = async (req, res) => {
         await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
 
         req.session.couponDiscound = coupon.discountAmount
-
+        req.session.coupon = couponCode
         coupon.usedBy.push(userId);
         await coupon.save();
         
@@ -652,6 +666,34 @@ const applyCoupon = async (req, res) => {
 }
 
 
+// to  remove coupon 
+const removeCoupon = async (req, res) => {
+    const { couponCode } = req.body;
+    const userId = req.session.user._id;  
+    
+    try {
+        const coupon = await couponSchema.findOne({ couponCode });
+        
+        const cart = await CartSchema.findOne({ userId });
+
+
+        const newTotal = cart.totalPrice + coupon.discountAmount;
+        
+        await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
+
+        req.session.coupon = null
+        
+        await couponSchema.findOneAndUpdate(
+            {couponCode},
+            { $pull : { usedBy : userId}},
+            {new : true}
+        )
+        
+        res.status(200).json({ message: 'Coupon removed successfully', newTotal });
+    } catch (error) {
+        res.status(500).json({ message: 'Something went wrong', error });
+    }
+}
 
 
 module.exports={
@@ -666,5 +708,6 @@ module.exports={
     applyCoupon,
     retryPayment,
     paymentSucess,
-    handleRazorpayPayment
+    handleRazorpayPayment,
+    removeCoupon
 }

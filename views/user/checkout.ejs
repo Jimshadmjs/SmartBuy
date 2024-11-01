@@ -171,15 +171,30 @@
                 </div>
                 <br>
                 <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
-                    <div class="flex-w flex-m m-r-20 m-tb-5">
-                        <input id="couponCodeInput" class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" placeholder="Coupon Code">
-                        <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" onclick="applyCoupon()">
-                            Apply Coupon
+
+
+                    <% if (coupon) {%> 
+
+                        <div class="flex-w flex-m m-r-20 m-tb-5">
+                            <input id="removeCouponCodeInput" class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" placeholder="Coupon Code" value="<%= coupon %>">
+                            <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" onclick="removeCoupon()">
+                                Remove Coupon
+                            </div>
                         </div>
-                    </div>
-                    <div class="error-message" id="couponCodeError"></div>
-                    <div class="success-message" id="couponSuccessMessage"></div>
-                    
+                        <div class="error-message" id="couponCodeError"></div>
+                        <div class="success-message" id="couponSuccessMessage"></div>
+                        
+                    <%} else {%> 
+                        <div class="flex-w flex-m m-r-20 m-tb-5">
+                            <input id="couponCodeInput" class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" placeholder="Coupon Code">
+                            <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" onclick="applyCoupon()">
+                                Apply Coupon
+                            </div>
+                        </div>
+                        <div class="error-message" id="couponCodeError"></div>
+                        <div class="success-message" id="couponSuccessMessage"></div>
+
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -468,6 +483,39 @@
         });
     }
 
+        }
+
+
+        async function removeCoupon() {
+            const couponCode = document.getElementById('removeCouponCodeInput').value;
+            try {
+                const response = await axios.post('/cart/removeCoupon', { couponCode });
+                if (response.status === 200 && response.data.newTotal) {
+        console.log(response.data.newTotal);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: response.data.message,
+        }).then(() => {
+            location.reload();
+        });
+    } else {
+        // Handle error message from the server
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: response.data.message || 'An unexpected error occurred.',
+        });
+    }
+    } catch (error) {
+        // Handle errors thrown by the axios call itself (network errors, etc.)
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.response?.data?.message || 'Error Please try again.',
+        });
+    }
         }
     </script>
     
