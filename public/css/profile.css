@@ -3,15 +3,15 @@ body {
 }
 .sidebar_profile {
     height: 80vh;
-    background-color: #f8f9fa; /* Dark background for sidebar */
-    color: rgb(11, 10, 10); /* White text for all sidebar content */
+    background-color: #f8f9fa; 
+    color: rgb(11, 10, 10); 
     padding: 20px;
     display: flex;
     flex-direction: column;
     padding-top: 30px;
 }
 .sidebar_profile h4 {
-    color: rgb(0, 0, 0); /* Make the username white */
+    color: rgb(0, 0, 0);
 }
 .profile-image {
     border-radius: 50%;
@@ -64,7 +64,7 @@ gap: 10px;
 
 /* Increase field width */
 #addressForm .form-control {
-width: 100%; /* Set the input field to 100% width */
+width: 100%;
 padding: 10px;
 font-size: 14px;
 }
@@ -98,8 +98,8 @@ background-color: #f8f9fa;
 }
 .product-list {
 display: flex;
-flex-wrap: wrap; /* To handle multiple products in the same order */
-gap: 15px; /* Space between product items */
+flex-wrap: wrap; 
+gap: 15px; 
 }
 
 .product-info {
@@ -114,12 +114,90 @@ object-fit: cover;
 margin-right: 10px;
 border-radius: 5px;
 }.custom-modal {
-max-width: 1000px; /* Set a maximum width */
-width: 90%; /* Set the width to 90% of the viewport */
-/* Optionally set a height */
+max-width: 1000px; 
+width: 90%; 
 }
 
 .modal-body {
-overflow-y: auto; /* Allow scrolling if content overflows */
-max-height: 400px; /* Set a maximum height for the body */
+overflow-y: auto; 
+max-height: 400px; 
+}
+
+.custom-modal {
+    max-width: 800px; 
+}
+
+.custom-modal-header {
+    background-color: #778390; 
+    color: white;
+}
+
+.custom-modal-body {
+    background-color: #f8f9fa; 
+}
+
+.custom-shipping-address {
+    border: 1px solid #ced4da;
+    padding: 0.5rem; 
+    border-radius: 0.25rem; 
+}
+
+.custom-info-table {
+    width: 100%; 
+    margin-bottom: 1rem; 
+}
+
+.custom-ordered-products {
+    margin-top: 1rem;
+}
+
+.product-card {
+    width: 150px; 
+    height: 250px; 
+    margin-bottom: 1rem; 
+    overflow: hidden; 
+}
+
+.product-card img {
+    max-width: 100%; 
+    height: auto;
+}
+
+.product-card .card-body {
+    text-align: center; 
+}
+.product-image-wishlist {
+    width: 100%; 
+    height: 220px; 
+    object-fit: fill; 
+}
+.wallet-balance {
+    background-color: #f8f9fa;
+    border-radius: 8px; 
+    padding: 20px; 
+    text-align: center; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-actions button {
+    margin-right: 10px;
+}
+.modal-body {
+    padding: 15px;
+}
+
+.list-group-item {
+    margin-bottom: 10px;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item h6 {
+    font-weight: bold;
+}
+
+.list-group-item p {
+    margin: 0;
 }

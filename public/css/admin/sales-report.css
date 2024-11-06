@@ -1,0 +1,127 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #1e1e1e, #333);
+    color: #ffffff;
+}
+
+.main-content {
+    padding: 30px 50px;
+}
+
+h2 {
+    font-weight: 500;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 15px;
+}
+
+.filter-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="date"],
+select {
+    padding: 12px;
+    width: 200px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+.filter-btn {
+    padding: 12px 30px;
+    background-color: #6d60e4;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.filter-btn:hover {
+    background-color: #533cd5;
+}
+
+/* Sales Report Section */
+.sales-report-section {
+    background-color: #292929;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th,
+td {
+    padding: 15px;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background-color: #444;
+    color: #fff;
+    font-weight: 500;
+}
+
+tr:hover {
+    background-color: #333;
+}
+
+/* Summary Section */
+.summary-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    gap: 15px;
+}
+
+.summary-card {
+    background-color: #292929;
+    padding: 20px;
+    width: 30%;
+    border-radius: 8px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.summary-card h4 {
+    color: #6d60e4;
+    margin-bottom: 10px;
+}
+
+.summary-card p {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* Download Buttons */
+.download-btn {
+    padding: 12px 20px;
+    margin-top: 20px;
+    background-color: #ff4757;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.download-btn:hover {
+    background-color: #e63946;
+}

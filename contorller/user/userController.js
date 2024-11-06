@@ -806,8 +806,6 @@ module.exports = {
     shop,
     search,
     filter,
-
-
     forgotmail,
     forgotEmailVerify,
     forgotPassOtp,

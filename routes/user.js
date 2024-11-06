@@ -8,6 +8,8 @@ const profileController = require('../contorller/user/profileController')
 const cartController = require('../contorller/user/cartController')
 const wishlistController = require('../contorller/user/wishlistController')
 const wallerController = require('../contorller/user/walletController')
+const checkoutController = require('../contorller/user/checkoutController')
+const couponController = require('../contorller/user/couponController')
 
 
 router.get('/logout',userController.logout)
@@ -43,8 +45,8 @@ router.patch('/cart/remove/:id',cartController.removeCart)
 router.patch('/cart/update/:userId',cartController.updateCart)
 
 
-router.get('/checkout/:id',user.checkSession,cartController.checkout)
-router.post('/checkout/submit/:id',cartController.placeOrder)
+router.get('/checkout/:id',user.checkSession,checkoutController.checkout)
+router.post('/checkout/submit/:id',checkoutController.placeOrder)
 router.get('/order/confirmation/:orderId',cartController.conformationOrde)
 
 
@@ -55,9 +57,9 @@ router.get('/order/details/:orderId',profileController.orderDetails)
 
 
 // razorpay
-router.post('/payment/failure/:id',cartController.handleRazorpayPayment)
-router.post('/payment/success/:orderId',cartController.paymentSucess);
-router.post('/retryPayment/:orderId', cartController.retryPayment)
+router.post('/payment/failure/:id',checkoutController.handleRazorpayPayment)
+router.post('/payment/success/:orderId',checkoutController.paymentSucess);
+router.post('/retryPayment/:orderId', checkoutController.retryPayment)
 
 
 // meybe helpfull in futer
@@ -77,9 +79,9 @@ router.post("/update-password",userController.newpassVerify)
 router.patch('/resetPassword/:userId',userController.resetPassword)
 
 
-router.post('/cart/applyCoupon',cartController.applyCoupon)
-router.post('/cart/removeCoupon',cartController.removeCoupon)
-router.get('/show/coupons',cartController.showCoupons)
+router.post('/cart/applyCoupon',couponController.applyCoupon)
+router.post('/cart/removeCoupon',couponController.removeCoupon)
+router.get('/show/coupons',couponController.showCoupons)
 
 router.get('/wishlist',user.checkSession,wishlistController.wishlist)
 router.post('/wishlist/add/:productId',wishlistController.addWishlist)

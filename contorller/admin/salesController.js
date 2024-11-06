@@ -243,12 +243,12 @@ const excelReport = async (req, res) => {
                 // Get the first day of the current week (Sunday)
                 const firstDayOfWeek = new Date(now);
                 firstDayOfWeek.setDate(now.getDate() - now.getDay()); 
-                firstDayOfWeek.setHours(0, 0, 0, 0); // Reset time to midnight
+                firstDayOfWeek.setHours(0, 0, 0, 0); 
             
                 // Get the last day of the current week (Saturday)
                 const lastDayOfWeek = new Date(firstDayOfWeek);
                 lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
-                lastDayOfWeek.setHours(23, 59, 59, 999); // Set time to end of the day
+                lastDayOfWeek.setHours(23, 59, 59, 999); 
             
                 // Filter to get orders within this week
                 filter.orderDate = { 
@@ -260,8 +260,8 @@ const excelReport = async (req, res) => {
                 const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 filter.orderDate = { $gte: firstDayOfMonth, $lte: lastDayOfMonth };
             } else if (frequency === 'yearly') {
-                const firstDayOfYear = new Date(now.getFullYear(), 0, 1); // January 1st
-                const lastDayOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st
+                const firstDayOfYear = new Date(now.getFullYear(), 0, 1); 
+                const lastDayOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); 
                 filter.orderDate = { $gte: firstDayOfYear, $lte: lastDayOfYear };
             }
         }
