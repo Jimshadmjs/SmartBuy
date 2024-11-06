@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
     dob:{type:Date},
     profilePicture: String,
     isBlocked: { type: Boolean, default: false },
-}, { timestamps: true });
+    referredBy: String,
+}, { timestamps: true });  
 
 // Password hashing before saving
 userSchema.pre('save', async function (next) {

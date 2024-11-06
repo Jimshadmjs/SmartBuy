@@ -49,6 +49,13 @@ const profile = async (req, res) => {
             .limit(limit)
             .populate('items.productID');
 
+            const cart = await CartSchema.findOne({userId})
+
+            const cartCount = cart ? cart.items.length : 0
+
+            const wishlist  = await wishlistSchema.findOne({userID:userId})
+            const wishlistCount = wishlist ? wishlist.items.length : 0 
+
         res.status(200).render('user/profile', { 
             user, 
             addresses, 
@@ -58,7 +65,9 @@ const profile = async (req, res) => {
             wallet: {
                 balance: wallet.balance,
                 transactions: latestTransactions 
-            }
+            },
+            cartCount,
+            wishlistCount
         });
     } catch (err) {
         console.error(err);
@@ -240,9 +249,6 @@ const returnOrder =  async (req, res) => {
 
 
 
-
-
-
 // order details
 
 const orderDetails = async (req, res) => {
@@ -286,7 +292,7 @@ const generateInvoice = async (req, res) => {
         doc.pipe(res);
 
         const rowHeight = 30;
-        let x = 50, y = 220; // Starting position
+        let x = 50, y = 220; 
 
         // Title
         doc.fontSize(25).text('Invoice', { align: 'center' });
@@ -301,7 +307,7 @@ const generateInvoice = async (req, res) => {
         doc.text(`${order.shippingAddress.fullname}`, { align: 'left' });
         doc.text(`${order.shippingAddress.address}`, { align: 'left' });
         doc.text(`Pincode: ${order.shippingAddress.pincode}`, { align: 'left' });
-        doc.moveDown(); // Add space before the table
+        doc.moveDown(); 
 
         // Table headers
         const headers = ['Product Name', 'Quantity', 'Price', 'Total'];
@@ -314,8 +320,8 @@ const generateInvoice = async (req, res) => {
             x += widths[index];
         });
 
-        x = 50; // Reset x position for the first row
-        y += rowHeight; // Move down for the next row
+        x = 50; 
+        y += rowHeight; 
 
         // Draw product rows
         let totalAmount = 0;
@@ -338,12 +344,12 @@ const generateInvoice = async (req, res) => {
                 x += widths[index];
             });
 
-            x = 50; // Reset x position for the next row
-            y += rowHeight; // Move down for the next row
+            x = 50; 
+            y += rowHeight; 
         });
 
-        // Add space before the total amount row
-        y += 10; // Add extra space before total amount
+        
+        y += 10; 
         doc.fontSize(10).text(`Total Amount: ${totalAmount.toFixed(2)}`, 55, y + 10, { align: 'right' });
 
         doc.end();

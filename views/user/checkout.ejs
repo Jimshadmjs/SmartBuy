@@ -28,7 +28,11 @@
 	<link rel="stylesheet" type="text/css" href="/css/util.css">
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 <!--===============================================================================================-->
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <style>
     .checkout-container {
@@ -52,6 +56,101 @@
     .btn-block {
         width: 100%;
     }
+    .custom-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1050; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: hidden; /* Disable scroll in the background */
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+}
+
+.modal-dialog {
+    position: absolute;
+    top: 50%; /* Position from the top */
+    left: 50%; /* Position from the left */
+    transform: translate(-50%, -50%); /* Center the modal */
+    max-width: 600px; /* Max width for the modal */
+    width: 100%; /* Full width for responsiveness */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Box shadow for a 3D effect */
+}
+
+.modal-content {
+    border-radius: 8px; /* Rounded corners for the content */
+    overflow: hidden; /* Hide overflow to make the border radius work */
+}
+
+.modal-header {
+    background-color: #007bff; /* Primary blue background */
+    color: white; /* White text for the header */
+    padding: 15px; /* Add some padding */
+    border-bottom: 1px solid #ddd; /* Light border at the bottom */
+    display: flex; /* Flexbox for header layout */
+    justify-content: space-between; /* Space between title and close button */
+    align-items: center; /* Center items vertically */
+}
+
+.btn-close {
+    background: none; /* Remove default button styles */
+    border: none; /* Remove border */
+    font-size: 1.5rem; /* Increase icon size */
+    color: white; /* White color for the close icon */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.modal-body {
+    padding: 20px; /* Add padding */
+    background-color: #f8f9fa; /* Light gray background */
+}
+
+.list-group-item {
+    font-size: 1rem; /* Standard font size */
+    padding: 10px 15px; /* Padding for list items */
+    border: none; /* Remove borders */
+    border-bottom: 1px solid #ddd; /* Light border between items */
+    transition: background-color 0.2s; /* Smooth background transition */
+}
+
+.list-group-item:hover {
+    background-color: #f1f1f1; /* Slight hover effect */
+}
+
+.empty-message {
+    text-align: center; /* Center align text */
+    font-style: italic; /* Italicized text */
+    color: #6c757d; /* Muted color for emphasis */
+    margin-top: 10px; /* Add some margin on top */
+}
+
+.modal-footer {
+    padding: 10px 15px; /* Add padding */
+    background-color: #f8f9fa; /* Light gray background */
+    border-top: 1px solid #ddd; /* Light border at the top */
+    text-align: right; /* Right align the buttons */
+}
+
+.btn {
+    padding: 8px 16px; /* Button padding */
+    font-size: 0.9rem; /* Button font size */
+    border-radius: 4px; /* Rounded corners for buttons */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Secondary button color */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    transition: background-color 0.2s; /* Smooth background transition */
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* Darker shade on hover */
+}
+
 </style>
 
 </style>
@@ -197,10 +296,40 @@
                     <% } %>
                 </div>
             </div>
+            
+
+            <div class="container mt-5">
+                <button id="showCouponsBtn" class="btn btn-primary">Show Available Coupons</button>
+            </div>
+        
+           <!-- Custom Modal -->
+<div class="custom-modal" id="couponsModal" tabindex="-1" aria-labelledby="couponsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="couponsModalLabel">Available Coupons</h5>
+                <button type="button" class="btn-close" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="couponsList" class="list-group"></ul>
+                <p class="empty-message" id="emptyMessage" style="display: none;">No coupons available at the moment.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+        
+
+
         </div>
     </div>
     
 </div>
+
+
 
 <!-- Include footer partial -->
 <%- include('partials/_footer') %>
@@ -423,7 +552,7 @@
         if (error.response && error.response.data.message) {
             Swal.fire({
                 icon: 'error',
-                title: 'Out of Stock',
+                title: 'Error',
                 text: error.response.data.message,
             });
         } else {
@@ -519,3 +648,58 @@
         }
     </script>
     
+    <script>
+        document.getElementById('showCouponsBtn').addEventListener('click', async function() {
+            try {
+                const response = await axios.get('/show/coupons');
+                const coupons = response.data;
+
+                const couponsList = document.getElementById('couponsList');
+                couponsList.innerHTML = '';
+
+                if (coupons.length === 0) {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    listItem.textContent = 'No Available Coupons For You!';
+                    couponsList.appendChild(listItem);
+                } else {
+                    coupons.forEach(coupon => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item';
+                        listItem.innerHTML = `
+                    <div><strong>Coupon Code:</strong> ${coupon.couponCode}</div>
+                    <div><strong>Discount:</strong> ${coupon.discountType} : ${coupon.discountAmount}</div>
+                    <div><strong>Min Purchase Amount:</strong> ₹${coupon.minAmount}</div>
+                    <div><strong>Max Purchase Amount:</strong> ₹${coupon.maxAmount}</div>
+                    <div><strong>Expires On:</strong> ${new Date(coupon.endDate).toLocaleDateString()}</div>
+                `;
+                        couponsList.appendChild(listItem);
+                    });
+                }
+
+                // Show the custom modal
+                showModal();
+
+            } catch (error) {
+                console.error('Error fetching coupons:', error);
+                const couponsList = document.getElementById('couponsList');
+                couponsList.innerHTML = '<li class="list-group-item text-danger">Failed to load coupons.</li>';
+            }
+        });
+
+        function showModal() {
+            const modalElement = document.getElementById('couponsModal');
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            modalElement.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden'; // Disable background scrolling
+        }
+
+        function closeModal() {
+            const modalElement = document.getElementById('couponsModal');
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = 'auto'; // Re-enable background scrolling
+        }
+    </script>

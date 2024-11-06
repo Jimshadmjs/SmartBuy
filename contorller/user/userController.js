@@ -7,12 +7,15 @@ const addressSchema = require('../../models/addressModel')
 const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
 const offerSchema = require('../../models/offerModel')
+const walletSchema = require('../../models/walletModel')
+const wishlistSchema = require('../../models/wishlistModel')
 const mongoose = require('mongoose');
 require("dotenv").config()
 
 
 // to render signup page
 const register = (req,res)=>{
+    req.session.referralCode = req.query.referralCode
     const message = req.query.message
     res.status(200).render('user/signup',{msg:message})
 }
@@ -115,6 +118,24 @@ const registerUser = async (req,res)=>{
 
         if(userOtp === sessionOtp.toString()){
             const newUser = userSchema(req.session.signupData)
+
+            if(req.session.referralCode){
+                const userId = req.session.referralCode
+                newUser.referredBy = userId
+                await walletSchema.findOneAndUpdate(
+                    {userId},
+                    {$inc : { balance : 200},
+                $push : {
+                    transactions : {
+                        type: 'credit', 
+                        amount : 200 ,
+                        description: 'Refferal Bonus '
+                    }
+                }
+                },
+                { new: true, upsert: true } 
+                )                 
+            }
             
             newUser.save()
             req.session.user = newUser
@@ -221,9 +242,16 @@ const categoryOffers = await offerSchema.find({
   });
 
   const categories = await categorySchema.find();
+  
+  const cart = await CartSchema.findOne({userId:req.session.user})
+  
+  cartCount = cart ? cart.items.length : 0
+
+  const wishlist  = await wishlistSchema.findOne({userID:req.session.user})
+  const wishlistCount = wishlist ? wishlist.items.length : 0  
 
   if (req.session.user) {
-      res.render('user/home', { user: req.session.user, categories, products: formattedProducts });
+      res.render('user/home', { user: req.session.user, categories, products: formattedProducts ,cartCount,wishlistCount});
   } else {
       res.render('user/home', { user: false, categories, products: formattedProducts });
   }
@@ -293,10 +321,19 @@ const product_details = async (req, res) => {
           };
       }
 
+      const cart = await CartSchema.findOne({userId:req.session.user})
+  
+      cartCount = cart ? cart.items.length : 0
+
+      const wishlist  = await wishlistSchema.findOne({userID:req.session.user})
+      const wishlistCount = wishlist ? wishlist.items.length : 0 
+
       res.render('user/product_detail', {
           user: req.session.user ?? false,
           product: formattedProduct,
-          relatedProducts
+          relatedProducts,
+          cartCount,
+          wishlistCount
       });
 
   } catch (error) {
@@ -460,13 +497,22 @@ const shop = async (req, res) => {
 
   const categories = await categorySchema.find();
 
+  const cart = await CartSchema.findOne({userId:req.session.user})
+  
+  cartCount = cart ? cart.items.length : 0
+
+  const wishlist  = await wishlistSchema.findOne({userID:req.session.user})
+  const wishlistCount = wishlist ? wishlist.items.length : 0
+
   if (req.session.user) {
       res.render('user/productsPage', {
           user: req.session.user,
           categories,
           products: formattedProducts,
           currentPage: page,
-          totalPages
+          totalPages,
+          cartCount,
+          wishlistCount
       });
   } else {
       res.render('user/productsPage', {

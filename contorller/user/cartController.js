@@ -8,6 +8,7 @@ const orderSchema = require('../../models/orderModel')
 const CartSchema = require('../../models/cartModel')
 const offerSchema = require('../../models/offerModel')
 const couponSchema = require('../../models/couponModel')
+const wishlistSchema = require('../../models/wishlistModel')
 // const {razorpay} = require('../../config/razorpay')
 const Razorpay = require('razorpay');
 
@@ -46,7 +47,7 @@ const cart = async (req,res)=>{
             let validItems = [];
 
             for (const item of cartItem.items) {
-                const product = await productSchema.findOne({ _id: item.productId, isListed: true }).lean();
+                const product = await productSchema.findOne({ _id: item.productId}).lean();
 
                 if (product) {
                     validItems.push(item);  
@@ -75,14 +76,22 @@ const cart = async (req,res)=>{
        if(cart){
         cartTotal = cart.totalPrice 
        }
-        
+       
+       const cartCountItems = await CartSchema.findOne({userId:user})
+  
+       cartCount = cartCountItems ? cartCountItems.items.length : 0 
+
+       const wishlist  = await wishlistSchema.findOne({userID:user})
+       const wishlistCount = wishlist ? wishlist.items.length : 0 
  
         res.render('user/shopingCart', {
             user: req.session.user || null,
             cartItems: filteredCartItems,  
             cartTotal,
             currentPage: page,
-            totalPages: totalPages
+            totalPages: totalPages,
+            cartCount,
+            wishlistCount
 });
 
     
@@ -149,8 +158,9 @@ const addCart = async (req,res)=>{
         }
     
         await cart.save();
-    
-        res.status(200).json({ message: 'Product added to cart successfully' });
+
+        const cartTotal = cart.items.length
+        res.status(200).json({ message: 'Product added to cart successfully', cartTotal});
     
     } catch (error) {
         console.error('Error adding to cart:', error);
@@ -202,7 +212,7 @@ const check_stock = async (req, res) => {
 
 
 // remove from cart
-
+ 
 const removeCart = async (req, res) => {
     const user = req.params.id;  // Extract user ID from route parameters
     const  itemId  = req.body.itemId;   
@@ -279,7 +289,6 @@ const checkout = async (req, res) => {
 
     const addresses = await addressSchema.find({ user: userId });
 
-    // Retrieve the cart for the user
     const cart = await CartSchema.findOne({ userId }).populate('items.productId');
 
     if (!cart || cart.items.length === 0) {
@@ -302,7 +311,6 @@ const checkout = async (req, res) => {
     for (const item of cart.items) {
         const product = item.productId;
 
-        // Fetch applicable offers
         const productOffers = await offerSchema.find({
             isActive: true,
             targetType: 'Product',
@@ -318,7 +326,6 @@ const checkout = async (req, res) => {
         const regularPrice = product.price;
         let bestOfferPrice = regularPrice;
 
-        // Determine the best offer price
         if (productOffers.length > 0) {
             const productDiscountedPrice = Math.round(regularPrice - (regularPrice * (productOffers[0].discountAmount / 100)));
             bestOfferPrice = Math.min(bestOfferPrice, productDiscountedPrice);
@@ -329,7 +336,6 @@ const checkout = async (req, res) => {
             bestOfferPrice = Math.min(bestOfferPrice, categoryDiscountedPrice);
         }
 
-        // Calculate total price for this item
         const totalPriceForItem = item.quantity * bestOfferPrice;
         cartSubtotal += totalPriceForItem;
 
@@ -342,12 +348,22 @@ const checkout = async (req, res) => {
         });
     }
 
-    // Now you can access the totalPrice from the cart
     const totalPriceFromSchema = cart.totalPrice;
     
     let coupon = req.session.coupon
-    // Calculate the final total
+
     let total = totalPriceFromSchema - discount + deliveryFee;
+
+    cartCount = cart ? cart.items.length : 0
+
+    const wishlist  = await wishlistSchema.findOne({userID:userId})
+    const wishlistCount = wishlist ? wishlist.items.length : 0 
+
+    if(req.session.couponDiscound){
+        discount = `${req.session.couponDiscound}`
+    }else{
+        discount = 0
+    }
 
     res.render('user/checkout', {
         user: req.session.user,
@@ -358,7 +374,9 @@ const checkout = async (req, res) => {
         deliveryFee,
         total,
         totalPriceFromSchema,
-        coupon
+        coupon,
+        cartCount,
+        wishlistCount
     });
 };
 
@@ -390,7 +408,6 @@ const placeOrder =  async (req, res) => {
             if (product.stock < item.quantity) {
                 outOfStockProducts.push(product.name);
             } else {
-                // Capture the original price before applying any discounts
                 originalPrices.push( product.price * item.quantity );
                 console.log(product.price);
                 
@@ -433,11 +450,12 @@ const placeOrder =  async (req, res) => {
         if(req.session.couponDiscound){
             newOrder.couponDiscount = req.session.couponDiscound
             newOrder.offerDiscount -= req.session.couponDiscound
+            req.session.couponDiscound = 0
         }
 
         // Handle payment methods
         if (paymentMethod === 'bankTransfer') {
-            // Handle UPI (bankTransfer) payment method
+            
             try {
                 const razorpayOrder = await razorpay.orders.create({
                     amount: totalAmount * 100, 
@@ -459,7 +477,7 @@ const placeOrder =  async (req, res) => {
                 res.status(500).json({ message: 'Payment failed. Please try again.', orderId: newOrder._id });
             }
         } else {
-            // Handle COD orders
+
             await newOrder.save();
             await CartSchema.findOneAndDelete({ userId: userId }); 
             res.json({ orderId: newOrder._id });
@@ -467,7 +485,7 @@ const placeOrder =  async (req, res) => {
 
     } catch (error) {
         console.error('Error saving order:', error);
-        res.status(500).send('An error occurred while processing your order');
+        res.status(500).send('An error occurred while processing your order');
     }
 }
 
@@ -551,14 +569,12 @@ const retryPayment=async (req, res) => {
 
 
 
-
-
-
 // order conformation
 
 const conformationOrde = async (req, res) => {
     try {
         const orderId = req.params.orderId;
+        const user = req.session.user._id
         const order = await orderSchema.findById(orderId).populate('items.productID'); 
     
         if (!order) {
@@ -589,12 +605,19 @@ const conformationOrde = async (req, res) => {
             estimatedDelivery: '3-5 business days', 
         };
     
-        console.log(orderDetails);
     
-        // Render the confirmation page
+        const cartCountItems = await CartSchema.findOne({userId:user})
+  
+        cartCount = cartCountItems ? cartCountItems.items.length : 0 
+ 
+        const wishlist  = await wishlistSchema.findOne({userID:user})
+        const wishlistCount = wishlist ? wishlist.items.length : 0 
+
         res.render('user/orderConfirmation', {
             user: req.session.user,
             order: orderDetails,
+            cartCount,
+            wishlistCount
         });
     
     } catch (error) {
@@ -682,6 +705,7 @@ const removeCoupon = async (req, res) => {
         await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
 
         req.session.coupon = null
+        req.session.couponDiscound = 0
         
         await couponSchema.findOneAndUpdate(
             {couponCode},
@@ -696,6 +720,25 @@ const removeCoupon = async (req, res) => {
 }
 
 
+// to show availabe coupons
+const showCoupons = async (req,res)=>{
+
+    try {
+
+        const userId = req.session.user._id
+
+        const coupon = await couponSchema.find({
+            usedBy : { $nin : [userId] }
+        })
+
+         res.status(200).json(coupon)
+        
+    } catch (error) {
+        console.error('Error fetching coupons:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 module.exports={
     cart,
     addCart,
@@ -709,5 +752,6 @@ module.exports={
     retryPayment,
     paymentSucess,
     handleRazorpayPayment,
-    removeCoupon
+    removeCoupon,
+    showCoupons
 }

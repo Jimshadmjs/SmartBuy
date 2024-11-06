@@ -62,6 +62,9 @@ function addToCart(product) {
     axios.post(`/cart/add/${window.userId}`, cartItem)
         .then(response => {
             showSuccessModal('Product added to cart successfully!');
+            const cart = document.querySelector('.cart_notify')
+            let cartCount = cart.setAttribute('data-notify',response.data.cartTotal)
+            
         })
         .catch(error => {
             console.error('Error adding to cart:', error);

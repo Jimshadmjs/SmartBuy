@@ -46,9 +46,17 @@ const wishlist = async(req,res)=>{
             }
         });
 
+        const cart = await CartSchema.findOne({userId})
+
+        cartCount = cart ? cart.items.length : 0
+
+        const wishlistCount = wishlist ? wishlist.items.length : 0 
+
         res.render('user/wishlist',{
             user,
-            wishlist
+            wishlist,
+            cartCount,
+            wishlistCount
         })
 }
 

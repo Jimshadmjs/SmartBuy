@@ -14,9 +14,8 @@ const walletSchema = require('../../models/walletModel')
 
 const add_fund = async (req, res) => {
     try {
-        const userId = req.session.user._id // Ensure userID is an ObjectId
+        const userId = req.session.user._id 
 
-        // Find the user's wallet or create a new one if not found
         let wallet = await walletSchema.findOne({  userId });
 
         if (!wallet) {
@@ -35,8 +34,7 @@ const add_fund = async (req, res) => {
                 ],
             });
         } else {
-            console.log('Wallet found. Updating the balance...');
-            // Update the existing wallet's balance and add a new transaction
+            console.log('Wallet found');
             wallet.balance += req.body.amount;
             wallet.transactions.push({
                 date: new Date(),
@@ -46,7 +44,6 @@ const add_fund = async (req, res) => {
             });
         }
 
-        // Save the wallet to the database
         await wallet.save();
 
         res.status(200).json({
@@ -73,7 +70,7 @@ const transaction = async (req, res) => {
         if (!wallet) return res.status(404).json({ message: 'Wallet not found' });
         const latestTransactions = wallet.transactions
         .sort((a, b) => b.date - a.date)
-        return res.json(latestTransactions); // Send all transactions
+        return res.json(latestTransactions); 
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Failed to fetch transactions' });

@@ -25,7 +25,7 @@ const salesReport = async (req,res)=>{
 const generate = async (req, res) => {
     const { startDate, endDate, frequency } = req.body;
     
-    const filter = {};
+    const filter = {orderStatus:'Delivered'};
 
     if (frequency === 'custom' && startDate && endDate) {
         filter.orderDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -55,10 +55,13 @@ const generate = async (req, res) => {
             const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); 
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
             filter.orderDate = { $gte: firstDayOfMonth, $lte: lastDayOfMonth };
+        } else if (frequency === 'yearly') {
+            const firstDayOfYear = new Date(now.getFullYear(), 0, 1); 
+            const lastDayOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); 
+            filter.orderDate = { $gte: firstDayOfYear, $lte: lastDayOfYear };
         }
     }
 
-    console.log('Filter:', filter); 
     
     try {
         const orders = await orderSchema.find(filter).populate('items.productID'); 
@@ -105,7 +108,7 @@ const pdf = async (req, res) => {
     try {
         const { startDate, endDate, frequency } = req.query;
 
-        const filter = {};
+        const filter = {orderStatus:'Delivered'};
         if (frequency === 'custom' && startDate && endDate) {
             filter.orderDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
         } else {
@@ -137,6 +140,10 @@ const pdf = async (req, res) => {
                 const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 filter.orderDate = { $gte: firstDayOfMonth, $lte: lastDayOfMonth };
+            }  else if (frequency === 'yearly') {
+                const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+                const lastDayOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); 
+                filter.orderDate = { $gte: firstDayOfYear, $lte: lastDayOfYear };
             }
         }
 
@@ -220,7 +227,7 @@ const excelReport = async (req, res) => {
     try {
         const { startDate, endDate, frequency } = req.query;
 
-        const filter = {};
+        const filter = {orderStatus:'Delivered'};
         if (frequency === 'custom' && startDate && endDate) {
             filter.orderDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
         } else {
@@ -252,6 +259,10 @@ const excelReport = async (req, res) => {
                 const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 filter.orderDate = { $gte: firstDayOfMonth, $lte: lastDayOfMonth };
+            } else if (frequency === 'yearly') {
+                const firstDayOfYear = new Date(now.getFullYear(), 0, 1); // January 1st
+                const lastDayOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st
+                filter.orderDate = { $gte: firstDayOfYear, $lte: lastDayOfYear };
             }
         }
 

@@ -79,6 +79,7 @@ router.patch('/resetPassword/:userId',userController.resetPassword)
 
 router.post('/cart/applyCoupon',cartController.applyCoupon)
 router.post('/cart/removeCoupon',cartController.removeCoupon)
+router.get('/show/coupons',cartController.showCoupons)
 
 router.get('/wishlist',user.checkSession,wishlistController.wishlist)
 router.post('/wishlist/add/:productId',wishlistController.addWishlist)

@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <img src="/${item.productID.images[0]}" class="card-img-top" alt="${item.productID.name}">
                                     <div class="card-body">
                                         <h5 class="card-title">${item.productID.name}</h5>
-                                        <p class="card-text">Price: ₹${item.productID.price}</p>
+                                        <p class="card-text">Price: ₹${item.price}</p>
                                         <p class="card-text">Quantity: ${item.quantity}</p>
                                     </div>
                                 </div>
