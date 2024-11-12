@@ -146,7 +146,6 @@ const placeOrder =  async (req, res) => {
                 outOfStockProducts.push(product.name);
             } else {
                 originalPrices.push( product.price * item.quantity );
-                console.log(product.price);
                 
                 product.stock -= item.quantity;
                 await product.save();
@@ -159,7 +158,6 @@ const placeOrder =  async (req, res) => {
         }
 
         const totalAmount = cart.totalPrice + 50;
-        console.log(originalPrices);
         
         let sum = originalPrices.reduce((a,c)=> a+c,0)
 
@@ -221,7 +219,6 @@ const placeOrder =  async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Error saving order:', error);
         res.status(500).send('An error occurred while processing your order');
     }
 }
@@ -242,7 +239,6 @@ const handleRazorpayPayment = async (req, res) => {
         
         if (order) {
             order.paymentStatus = 'Failed';
-            console.log( order.paymentStatus);
             
             order.razorpayPaymentId = req.body.paymentId; // Handle the failure payload
 
@@ -252,7 +248,6 @@ const handleRazorpayPayment = async (req, res) => {
 
         
     } catch (error) {
-        console.error('Error handling Razorpay payment failure:', error);
         res.status(500).json({ message: 'Server error.' });
     }
 }
@@ -268,7 +263,6 @@ const paymentSucess =async (req, res) => {
 
         res.status(200).json({ message: 'Payment successful', paymentId });
     } catch (error) {
-        console.error('Error updating payment status:', error);
         res.status(500).send('Error updating payment status');
     }
 }
@@ -278,13 +272,10 @@ const paymentSucess =async (req, res) => {
 const retryPayment=async (req, res) => {
     try {
         const { orderId } = req.params;
-        console.log(orderId);
         
         
         // Find the order by orderId
         const order = await orderSchema.findById(orderId);
-        console.log(order);
-        console.log(order.paymentStatus);
         
 
         if ( order.paymentStatus === 'Success') {
@@ -298,7 +289,6 @@ const retryPayment=async (req, res) => {
             orderId: order._id
         });
     } catch (error) {
-        console.error('Error processing retry payment:', error);
         res.status(500).json({ message: 'Server error while retrying payment.' });
     }
 }

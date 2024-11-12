@@ -30,7 +30,6 @@ const loggedIn = async (req,res)=>{
     const admin = await adminModel.findOne({email})
 
     if(!admin) return res.redirect("/admin/login?message=Invalid Credentials")
-        console.log(admin);
 
     const isMatch = await bcrypt.compare(password,admin.password)
 
@@ -41,7 +40,8 @@ const loggedIn = async (req,res)=>{
     res.redirect("/admin/dashboard")
         
     } catch (error) {
-        console.log("error");
+       
+        res.status(500).send("Internal Server Error");
         
     }
 
@@ -77,7 +77,9 @@ try {
     });
     
 } catch (error) {
-    console.log("error");
+    
+    res.status(500).send("Internal Server Error");
+
     
 }
 
@@ -129,7 +131,7 @@ const category = async (req,res)=>{
         });
         
     } catch (error) {
-        console.log("error");
+        res.status(500).send("Internal Server Error");
         
     }
 }
@@ -205,7 +207,6 @@ const editCategory = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Category has been updated." });
     } catch (error) {
-        console.error(error); 
         res.status(500).send("Internal Server Error");
     }
 };
@@ -243,7 +244,6 @@ const products = async (req,res)=>{
             isListed: product.isListed,
             categoryID: product.categoryID ? product.categoryID.name : 'Unknown' 
         }));
-        console.log(formattedProducts);
         
         
         res.render('admin/product', {
@@ -253,7 +253,6 @@ const products = async (req,res)=>{
             categories
         });
     } catch (error) {
-        console.error('Error fetching products:', error);
         res.status(500).send("Internal Server Error");
     }
     
@@ -263,7 +262,6 @@ const products = async (req,res)=>{
 
 // to add product
 const add_product = async (req, res) => {
-    console.log(req.body);
     
     try {
       
@@ -282,7 +280,6 @@ const add_product = async (req, res) => {
       });
   
   
-      console.log(newProduct)
   
       // Save the new product to the database
       await newProduct.save();  
@@ -290,7 +287,6 @@ const add_product = async (req, res) => {
       res.status(201).redirect("/admin/product");
       
     } catch (error) {
-      console.error(error);
       
       return res.status(500).send("An error occurred while adding the product.");
     }
@@ -343,7 +339,6 @@ const change_file =async (req, res) => {
         await product.save();
         res.status(200).json(product);
     } catch (error) {
-        console.error('Error updating product:', error);
         res.status(500).send('Internal Server Error');
     }
 };
@@ -353,7 +348,6 @@ const change_file =async (req, res) => {
 // toggle-list of product
 const toggle_list = async (req, res) => {
     try {
-        console.log("jkna");
         
       const productId = req.params.id;
       const { isListed } = req.body;  
@@ -365,7 +359,6 @@ const toggle_list = async (req, res) => {
         });
       }
   
-      console.log(productId, isListed);
       const product = await productSchema.findById(productId);
       if (!product) {
         return res
@@ -382,7 +375,6 @@ const toggle_list = async (req, res) => {
         isListed: product.isListed,
       });
     } catch (error) {
-      console.error("Error toggling product listing:", error);
       res.status(500).send("Server error");
    }
   };
@@ -437,7 +429,6 @@ const order = async (req, res) => {
             totalPagesStock
         });
     } catch (error) {
-        console.error(error);
         res.status(500).send('Server Error');
     }
 }
@@ -495,7 +486,6 @@ const approveCancellation = async (req, res) => {
 
         res.json({ message: 'Order cancelled successfully.', updatedOrder });
     } catch (error) {
-        console.error('Error approving cancellation:', error);
         res.status(500).json({ message: 'An error occurred while cancelling the order.' });
     }
 };
@@ -526,7 +516,6 @@ const refundToWallet = async (userId, amount,orderId) => {
         );
   
     } catch (error) {
-        console.error('Error processing refund to wallet:', error);
         throw new Error('Refund to wallet failed');
     }
 };
@@ -549,7 +538,7 @@ const orderDetails = async (req, res) => {
 
         res.status(200).json(order);
     } catch (error) {
-        console.error('Error fetching order details:', error);
+       
         res.status(500).json({ message: 'An error occurred while fetching order details' });
     }
 };

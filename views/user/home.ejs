@@ -378,7 +378,6 @@
 
 <script>
 	function addToWishlist(productId) {
-		console.log("uhs");
     axios.post(`/wishlist/add/${productId}`)
 	
         .then(response => {
@@ -388,6 +387,8 @@
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
+			const wishlist = document.getElementById('wishlist-noti')
+            wishlist.setAttribute('data-notify',window.wishlistCount=response.data.wishlistCount)
         })
         .catch(error => {
             Swal.fire({
@@ -396,7 +397,6 @@
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-            console.error('Error:', error);
         });
 }
 

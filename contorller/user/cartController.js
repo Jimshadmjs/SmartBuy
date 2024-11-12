@@ -30,7 +30,6 @@ const cart = async (req,res)=>{
         const page = parseInt(req.query.page) || 1;
 
         if (!mongoose.Types.ObjectId.isValid(user)) {
-            console.log('Invalid userId:', user);
             return res.status(400).send('Invalid user ID');
         }
 
@@ -103,7 +102,6 @@ const addCart = async (req,res)=>{
     const { productId, name, price, quantity, imageUrl } = req.body;
     const user = req.session.user._id;
     
-    console.log(productId, name, price, quantity, imageUrl);
     
     try {
 
@@ -162,7 +160,6 @@ const addCart = async (req,res)=>{
         res.status(200).json({ message: 'Product added to cart successfully', cartTotal});
     
     } catch (error) {
-        console.error('Error adding to cart:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
     
@@ -177,7 +174,6 @@ const check_stock = async (req, res) => {
         const productId = req.params.id;
         const user = req.session.user
         const userId = user._id
-        console.log(productId);
         
         
         
@@ -193,7 +189,7 @@ const check_stock = async (req, res) => {
         if (cart) {
             const item = cart.items.find(item => item.productId.toString() === productId);
             if (item) {
-                userQuantity = item.quantity; // Get current quantity in the user's cart
+                userQuantity = item.quantity; 
             }
         }
 
@@ -203,7 +199,6 @@ const check_stock = async (req, res) => {
             return res.status(200).json({ inStock: true, userQuantity, availableStock: product.stock });
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 }
@@ -213,20 +208,16 @@ const check_stock = async (req, res) => {
 // remove from cart
  
 const removeCart = async (req, res) => {
-    const user = req.params.id;  // Extract user ID from route parameters
+    const user = req.params.id;  
     const  itemId  = req.body.itemId;   
-    // Extract item ID from request body
-    console.log(itemId);
     
     if (!mongoose.Types.ObjectId.isValid(user) || !mongoose.Types.ObjectId.isValid(itemId)) {
-        console.log(user);
         return res.status(400).send('Invalid user or item ID');
     }
     
     try {
         // Find the user's cart
         const cart = await CartSchema.findOne({ userId: user});
-        console.log(cart);
         
         if (cart) {
             // Remove the item from the cart
@@ -241,7 +232,6 @@ const removeCart = async (req, res) => {
             res.status(404).send('Cart not found');
         }
     } catch (error) {
-        console.error('Error removing item from cart:', error);
         res.status(500).send('Internal Server Error');
     }
 
@@ -276,7 +266,6 @@ const updateCart =  async (req, res) => {
             return res.status(404).json({ success: false, message: 'Item not found in cart' });
         }
     } catch (error) {
-        console.error('Error updating cart item quantity:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
@@ -336,7 +325,6 @@ const conformationOrde = async (req, res) => {
         });
     
     } catch (error) {
-        console.error('Error fetching order:', error);
         res.status(500).send('An error occurred while fetching the order');
     }
     

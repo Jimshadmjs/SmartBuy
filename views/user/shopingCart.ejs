@@ -294,7 +294,6 @@
         const decreaseButton = item.querySelector('.btn-num-product-down');
         const itemId = item.querySelector('.remove-item').getAttribute('data-id'); 
         const productId = item.querySelector('.remove-item').getAttribute('data-productId'); 
-		console.log(itemId);
 		
         // Handle increase quantity
         increaseButton.addEventListener('click', async () => {
@@ -304,7 +303,6 @@
 
             // Check conditions before updating quantity
             if (currentQuantity <= 5 && currentQuantity <= availableStock) {
-				console.log(itemId);
 				
                 quantityInput.value = currentQuantity;
                 updateCartTotal();
@@ -373,14 +371,12 @@
             const response = await axios.post(`/cart/check-stock/${productId}`);
             return response.data.availableStock; 
         } catch (error) {
-            console.error('Error checking stock:', error);
             return 0; 
         }
     }
 
     // Function to update cart item quantity in the backend
     function updateCartItemQuantity(itemId, quantity) {
-		console.log(itemId, quantity);
 
         axios.patch('/cart/update/<%= user._id %>', { itemId,quantity })
             .then(response => {

@@ -52,7 +52,8 @@ const applyCoupon = async (req, res) => {
         
         await CartSchema.findOneAndUpdate({ userId }, { totalPrice: newTotal }, { new: true });
 
-        req.session.couponDiscound = coupon.discountAmount
+        
+        req.session.couponDiscound = discount
         req.session.coupon = couponCode
         coupon.usedBy.push(userId);
         await coupon.save();
@@ -109,7 +110,6 @@ const showCoupons = async (req,res)=>{
          res.status(200).json(coupon)
         
     } catch (error) {
-        console.error('Error fetching coupons:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }

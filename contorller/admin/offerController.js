@@ -20,14 +20,12 @@ const offer = async (req,res)=>{
             .populate('target') 
             .limit(limit)
             .skip((page - 1) * limit);
-    console.log(offers);
     
         const totalOffers = await offerSchama.countDocuments();
         const totalPages = Math.ceil(totalOffers / limit);
     
         res.render('admin/offer', { offers, currentPage: page, totalPages });
     } catch (error) {
-        console.error('Error fetching offers:', error);
         res.status(500).send('Internal Server Error');
     }
     
@@ -40,7 +38,6 @@ const products = async (req,res)=>{
         const products = await productSchema.find(); 
         res.json(products);
     } catch (error) {
-        console.error('Error fetching products:', error);
         res.status(500).json({ error: 'Error fetching products' });
     }
 }
@@ -53,7 +50,6 @@ const categories = async (req, res) => {
         const categories = await categorySchema.find(); 
         res.json(categories);
     } catch (error) {
-        console.error('Error fetching categories:', error);
         res.status(500).json({ error: 'Error fetching categories' });
     }
 }
@@ -64,7 +60,6 @@ const addOffer = async (req, res) => {
     try {
 
         const { title, discountAmount, startDate, endDate, targetType, target, selectedProducts,selectedCategory } = req.body;
-        console.log(selectedCategory);
         
         
         const newOffer = new offerSchama({
@@ -87,7 +82,6 @@ const addOffer = async (req, res) => {
         const savedOffer = await newOffer.save();
         return res.status(201).json(savedOffer); 
     } catch (error) {
-        console.error('Error creating offer:', error);
         return res.status(500).json({ message: 'Failed to create offer', error });
     }
 }
@@ -120,7 +114,6 @@ const editOffer = async (req, res) => {
 
         res.json({ message: 'Offer updated successfully' });
     } catch (error) {
-        console.error('Error updating offer:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 }
@@ -142,7 +135,6 @@ const activate =  async (req, res) => {
 
         res.json({ message: 'Offer activated successfully' });
     } catch (error) {
-        console.error('Error activating offer:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 }
@@ -166,7 +158,6 @@ const deactivate = async (req, res) => {
 
         res.json({ message: 'Offer deactivated successfully' });
     } catch (error) {
-        console.error('Error deactivating offer:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 }

@@ -95,16 +95,13 @@
                 selectedProducts: Array.from(document.querySelectorAll('#productSelect option:checked')).map(option => option.value),
                 selectedCategory: Array.from(document.querySelectorAll('#categorySelect option:checked')).map(option => option.value)
             };
-            console.log(offerData);
             
             axios.post('/admin/offers/add', offerData)
                 .then(response => {
-                    console.log('Offer saved successfully:', response.data);
                     closeModal();
                     location.reload()
                 })
                 .catch(error => {
-                    console.error('Error saving offer:', error);
                 });
         }
     };
@@ -142,7 +139,6 @@
                     addSearchFunctionality(selectElement);
                 })
                 .catch(error => {
-                    console.error('Error fetching items:', error);
                 });
         }
     }
@@ -247,7 +243,6 @@
                 });
             })
             .catch(error => {
-                console.error('Error fetching options:', error);
             });
     }
     
@@ -288,12 +283,10 @@
     
             axios.patch('/admin/offers/edit', offerData)
                 .then(response => {
-                    console.log('Offer updated successfully:', response.data);
                     location.reload()
                     closeEditModal();
                 })
                 .catch(error => {
-                    console.error('Error updating offer:', error);
                 });
         }
     };
@@ -355,7 +348,6 @@
                         });
                     })
                     .catch(error => {
-                        console.error('Error toggling offer status:', error);
                         Swal.fire(
                             'Error!',
                             'There was an issue changing the offer status.',

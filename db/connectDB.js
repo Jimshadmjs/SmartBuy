@@ -2,12 +2,11 @@ const mongoose = require("mongoose")
 
 const connectDB = async ()=>{
     try{
-        const conn = await mongoose.connect('mongodb://localhost:27017/SmartBuy',{
+        const conn = await mongoose.connect('mongodb+srv://smartbuy:Jimshad925@smartbuy.revi6.mongodb.net/SmartBuy?retryWrites=true&w=majority&appName=SmartBuy',{
        
         })
         
     }catch(error){
-        console.log(error);
         
         process.exit(1)
         

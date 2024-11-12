@@ -10,7 +10,6 @@
 
 
 function toggleProduct(productId) {
-    console.log(productId);
   // Select the button using the data-id attribute
   const isListedButton = document.querySelector(`button[data-id='${productId}']`);
 
@@ -33,7 +32,6 @@ if(confirmation){
       }
     })
     .catch(error => {
-      console.error('Error toggling product listing:', error);
       alert('An error occurred while updating the product status. Please try again.');
    });
 }
@@ -90,39 +88,30 @@ function initializeCropper(input, index) {
 
 // Crop the image and replace the preview with the cropped version
 function cropImage(index) {
-    console.log(index);
     const cropper = croppers[index];
     if (cropper) {
         const croppedCanvas = cropper.getCroppedCanvas();
-        // Convert the cropped image to a base64 string for JSON submission
         const base64Image = croppedCanvas.toDataURL("image/jpeg");
-        console.log("diid");
         
         croppedImages[index] = base64Image; 
         // Convert Base64 to File
         const file = base64ToFile(croppedImages[index],` image[${index}].png`);
-        console.log("diid");
 
-        // Create a DataTransfer object to set the file input
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
 
-        // Set the file input's files to the DataTransfer object
         const fileInput = document.getElementById(`croppedImage-${index}`);
         fileInput.files = dataTransfer.files;
 
-        // Replace the canvas with the actual cropped image preview
         const imgElement = document.getElementById(`image-preview-${index}`);
-        imgElement.src = base64Image; // Set the cropped image as the new source
-        imgElement.style.display = "block"; // Ensure it's visible
+        imgElement.src = base64Image;
+        imgElement.style.display = "block";
 
-        // Destroy the cropper instance
         cropper.destroy();
-        croppers[index] = null; // Clear the cropper instance
+        croppers[index] = null; 
     }
 }
 
-// Add more image upload inputs dynamically
 document.getElementById("add-image-btn").addEventListener("click", function () {
     const container = document.getElementById("image-upload-container");
     const newIndex = container.getElementsByClassName("image-upload").length;

@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function () {
             axios.get(`/order/details/${orderId}`)
                 .then(response => {
                     const order = response.data;
-                    console.log(order);
 
                     // Populate the modal with order details
                     const orderedDate = new Date(order.orderedDate);
@@ -104,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     modal.show();
                 })
                 .catch(error => {
-                    console.error('Error fetching order details:', error);
                     alert('An error occurred while fetching order details.');
                 });
         });
@@ -123,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     link.remove();
                 })
                 .catch(error => {
-                    console.error('Error downloading invoice:', error);
                     alert('Failed to download the invoice.');
                 });
         }
@@ -157,13 +154,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (confirmation) {
                 axios.delete(`/daleteAddress/${addressId}`)
                     .then(response => {
-                        console.log(response.data.message);
                         // Remove the address from the UI
                         e.target.closest('li').remove();
                     })
                     .catch(error => {
-                        console.error('Error deleting address:', error);
-                        // Optionally show an error message to the user
                     });
             }
         }
@@ -228,17 +222,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function addAddress() {
         const addressData = getAddressData();
         if (validateForm(addressData)) {
-            console.log(userId);
 
             axios.post(`/addAddress/${userId}`, addressData)
                 .then(response => {
-                    console.log('Address added:', response.data);
                     addressModal.hide();
                     addressForm.reset();
                     location.reload()
                 })
                 .catch(error => {
-                    console.error('Error adding address:', error);
                 });
         }
     }
@@ -251,15 +242,12 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const response = await axios.patch(`/editAddress/${addressId}`, addressData);
                 if (response.status === 200) {
-                    console.log("Address updated successfully");
                     addressModal.hide();
                     addressForm.reset();
                     location.reload()
                 } else {
-                    console.error("Failed to update address", response);
                 }
             } catch (error) {
-                console.error('Error updating address:', error);
             }
         }
     }
@@ -375,7 +363,6 @@ document.getElementById('profileForm').addEventListener('submit', function (e) {
             alert('Profile updated successfully!');
         })
         .catch(error => {
-            console.error(error);
             alert('There was an error updating the profile.');
         });
 });
@@ -584,7 +571,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const modal = new bootstrap.Modal(transactionsModal);
             modal.show();
         } catch (error) {
-            console.error('Error fetching transactions:', error);
         }
     });
 });

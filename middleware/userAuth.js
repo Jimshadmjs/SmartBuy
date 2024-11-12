@@ -5,7 +5,6 @@ const checkSession = (req,res,next)=>{
         next()
         
     }else{
-        console.log("error");
         
         res.redirect("/")
        

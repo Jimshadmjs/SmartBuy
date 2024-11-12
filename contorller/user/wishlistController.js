@@ -82,9 +82,9 @@ const addWishlist = async (req, res) => {
         wishlist.items.push({ productID: productId });
         await wishlist.save(); 
 
-        res.status(200).json({ message: 'Item added to wishlist' });
+        const wishlistCount = await wishlistSchema.findOne({ userID: userId })
+        res.status(200).json({ message: 'Item added to wishlist',wishlistCount:wishlistCount.items.length });
     } catch (error) {
-        console.error('Error adding to wishlist:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -100,8 +100,8 @@ const removeFromWishlist = async (req, res) => {
         // Find the user's wishlist and remove the item by productID
         const wishlist = await wishlistSchema.findOneAndUpdate(
             { userID },
-            { $pull: { items: { productID } } }, // Remove the item with matching productID
-            { new: true } // Return the updated document
+            { $pull: { items: { productID } } }, 
+            { new: true } 
         );
 
         if (wishlist) {
@@ -110,7 +110,6 @@ const removeFromWishlist = async (req, res) => {
             return res.status(404).json({ message: 'Wishlist not found.' });
         }
     } catch (error) {
-        console.error('Error removing item from wishlist:', error);
         res.status(500).json({ message: 'An error occurred while removing the item.' });
     }
 };

@@ -70,7 +70,6 @@ const profile = async (req, res) => {
             wishlistCount
         });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ success: false, message: 'Failed to fetch user details' });
     }
 };
@@ -117,7 +116,6 @@ const editAddress = async (req,res)=>{
     const addressId = req.params.id;
     
     const existingAddress = await addressSchema.findById(addressId);
-    console.log(existingAddress);
     
     if (!existingAddress) {
         return res.status(404).json({ message: 'Address not found.' });
@@ -141,7 +139,6 @@ const editAddress = async (req,res)=>{
         // Return the updated address
         res.status(200).json({ message: 'Address updated successfully', address: updatedAddress });
     } catch (error) {
-        console.error('Error updating address:', error); // Log the error for debugging
         res.status(500).json({ message: 'Error updating address', error: error.message });
     }
          
@@ -163,7 +160,6 @@ const daleteAddress = async (req,res)=>{
 
         res.status(200).json({ message: 'Address deleted successfully' });
     } catch (error) {
-        console.error('Error deleting address:', error);
         res.status(500).json({ message: 'Error deleting address', error: error.message });
     }
 
@@ -215,7 +211,6 @@ const cancelOrder =  async (req, res) => {
 
         res.status(200).json({ message: 'Cancellation request submitted successfully. Awaiting admin approval.' });
     } catch (error) {
-        console.error('Error submitting cancellation request:', error);
         res.status(500).json({ message: 'An error occurred while submitting the cancellation request.' });
     }
 };
@@ -241,7 +236,6 @@ const returnOrder =  async (req, res) => {
 
         res.status(200).json({ success:true });
     } catch (error) {
-        console.error('Error submitting cancellation request:', error);
         res.status(500).json({success:false });
     }
 };
@@ -269,7 +263,6 @@ const orderDetails = async (req, res) => {
             totalAmount: order.totalAmount,
         });
     } catch (error) {
-        console.error('Error fetching order details:', error);
         res.status(500).json({ message: 'An error occurred while fetching the order details' });
     }
 }
@@ -354,7 +347,6 @@ const generateInvoice = async (req, res) => {
 
         doc.end();
     } catch (error) {
-        console.error('Error generating PDF:', error);
         res.status(500).send('An error occurred while generating the PDF.');
     }
 };

@@ -19,7 +19,6 @@ document.querySelectorAll('.add-to-cart').forEach(button => {
                             .then(() => {
                                 // Check for limited stock after adding
                                 if (response.userQuantity + 1 > 5) {
-									console.log("yes");
 									
                                     showLimitedStockModal(`You already have ${response.userQuantity + 1} in your cart.`);
                                 }
@@ -32,7 +31,6 @@ document.querySelectorAll('.add-to-cart').forEach(button => {
                 }
             })
             .catch(error => {
-                console.error('Error checking stock:', error);
             });
     });
 });
@@ -44,7 +42,6 @@ function checkStock(productId) {
             return response.data; 
         })
         .catch(error => {
-            console.error('Error checking stock:', error);
             return { inStock: false, userQuantity: 0, availableStock: 0 };
         });
 }
@@ -67,7 +64,6 @@ function addToCart(product) {
             let cartCount = cart.setAttribute('data-notify',response.data.cartTotal)
         })
         .catch(error => {
-            console.error('Error adding to cart:', error);
 			showLimitedStockModal(`You already have limited product in your cart.`);
 
         });
@@ -187,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const dateA = new Date(a.getAttribute('data-created-at'));
                     const dateB = new Date(b.getAttribute('data-created-at'));
-                    console.log(dateA,dateB);
                     
                     return dateB - dateA; 
                 });
@@ -229,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
         productContainer.innerHTML = '';
 
         sortedProducts.forEach(product => {
-            console.log(product);
             
             productContainer.appendChild(product);
         });

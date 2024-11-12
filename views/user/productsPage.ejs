@@ -410,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.filter-tope-group button').forEach(button => {
         button.addEventListener('click', function() {
             const filterValue = this.getAttribute('data-filter');
-            console.log(`Filtering by: ${filterValue}`);
 
             document.querySelectorAll('.filter-tope-group button').forEach(btn => {
                 btn.classList.remove('how-active1');
@@ -422,7 +421,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             products.forEach(product => {
                 const productCategory = product.getAttribute('data-category');
-                console.log(`Product category: ${productCategory}`);    
 
                 if (filterValue === '*' || productCategory === filterValue) {
                     product.style.display = 'block'; 
@@ -440,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 	function addToWishlist(productId) {
-		console.log("uhs");
     axios.post(`/wishlist/add/${productId}`)
 	
         .then(response => {
@@ -450,6 +447,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
+            const wishlist = document.getElementById('wishlist-noti')
+            wishlist.setAttribute('data-notify',window.wishlistCount=response.data.wishlistCount)
+
         })
         .catch(error => {
             Swal.fire({
@@ -458,7 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-            console.error('Error:', error);
         });
 }
 

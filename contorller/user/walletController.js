@@ -19,8 +19,6 @@ const add_fund = async (req, res) => {
         let wallet = await walletSchema.findOne({  userId });
 
         if (!wallet) {
-            console.log('No wallet found. Creating a new one...');
-            // Create a new wallet with an initial balance from the request
             wallet = new walletSchema({
                 userId,
                 balance: req.body.amount,
@@ -34,7 +32,6 @@ const add_fund = async (req, res) => {
                 ],
             });
         } else {
-            console.log('Wallet found');
             wallet.balance += req.body.amount;
             wallet.transactions.push({
                 date: new Date(),
@@ -52,7 +49,6 @@ const add_fund = async (req, res) => {
             newBalance: wallet.balance,
         });
     } catch (error) {
-        console.error('Error adding funds:', error);
         res.status(500).json({
             success: false,
             message: 'Server error. Please try again.',
@@ -72,7 +68,6 @@ const transaction = async (req, res) => {
         .sort((a, b) => b.date - a.date)
         return res.json(latestTransactions); 
     } catch (err) {
-        console.error(err);
         return res.status(500).json({ message: 'Failed to fetch transactions' });
     }
 }

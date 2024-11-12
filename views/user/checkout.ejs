@@ -509,7 +509,6 @@
                         alert('Payment successful! Payment ID: ' + paymentResponse.razorpay_payment_id);
                         window.location.href = `/order/confirmation/${orderId}`;
                     }).catch(err => {
-                        console.error('Error updating payment status:', err);
                     });
                 },
                 prefill: {
@@ -538,7 +537,6 @@
                 }).then(() => {
                     window.location.href = '/profile';
                 }).catch(err => {
-                    console.error('Error logging payment failure:', err);
                 });
             });
 
@@ -586,7 +584,6 @@
     const response = await axios.post('/cart/applyCoupon', { couponCode });
 
     if (response.status === 200 && response.data.newTotal) {
-        console.log(response.data.newTotal);
         
         Swal.fire({
             icon: 'success',
@@ -620,7 +617,6 @@
             try {
                 const response = await axios.post('/cart/removeCoupon', { couponCode });
                 if (response.status === 200 && response.data.newTotal) {
-        console.log(response.data.newTotal);
         
         Swal.fire({
             icon: 'success',
@@ -681,7 +677,6 @@
                 showModal();
 
             } catch (error) {
-                console.error('Error fetching coupons:', error);
                 const couponsList = document.getElementById('couponsList');
                 couponsList.innerHTML = '<li class="list-group-item text-danger">Failed to load coupons.</li>';
             }

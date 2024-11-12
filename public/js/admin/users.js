@@ -4,10 +4,8 @@ const updateUserStatus = async (userId, isBlocked) => {
 
     try {
         const response = await axios.patch(url, data);
-        console.log('User status updated:', response.data);
         location.reload();
     } catch (error) {
-        console.error('Error updating user status:', error);
     }
 };
 

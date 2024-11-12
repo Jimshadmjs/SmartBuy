@@ -482,7 +482,6 @@ document.querySelectorAll('.add-to-cart').forEach(button => {
                 }
             })
             .catch(error => {
-                console.error('Error checking stock:', error);
             });
     });
 });
@@ -492,7 +491,6 @@ function checkStock(productId) {
     return axios.post(`/cart/check-stock/${productId}`)
         .then(response => response.data)
         .catch(error => {
-            console.error('Error checking stock:', error);
             return { inStock: false, userQuantity: 0, availableStock: 0 };
         });
 }
@@ -500,7 +498,6 @@ function checkStock(productId) {
 // Add to cart function
 
 const number = document.getElementById('btn.value')
-console.log(number);
 
 function addToCart(product) {
     const cartItem = {
@@ -518,7 +515,6 @@ function addToCart(product) {
             let cartCount = cart.setAttribute('data-notify',response.data.cartTotal)
         })
         .catch(error => {
-            console.error('Error adding to cart:', error);
             showLimitedStockAlert('You already have limited product in your cart.');
         });
 }
@@ -577,7 +573,6 @@ document.querySelectorAll('.rating').forEach(ratingElement => {
 });
 
 async function submitRating(productId, rating) {
-	console.log(productId, rating);
 	
     try {
         const response = await axios.post(`/rate/${productId}`, {
@@ -590,7 +585,6 @@ async function submitRating(productId, rating) {
             alert('Error submitting rating.');
         }
     } catch (error) {
-        console.error('Error:', error);
         alert('Error submitting rating.');
     }
 }

@@ -22,11 +22,9 @@ document.querySelectorAll('.remove-item').forEach(button => {
                         if (response.data.success) {
                             location.reload(); 
                         } else {
-                            console.error('Failed to remove item from cart');
                         }
                     })
                     .catch(error => {
-                        console.error('Error removing item from cart:', error);
                     });
             }
         });

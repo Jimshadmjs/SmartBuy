@@ -197,11 +197,9 @@ document.getElementById('editCouponForm').addEventListener('submit', async funct
     };
 
     const validationErrors = validateEditCouponData(couponData);
-    console.log(validationErrors);
     
     if (validationErrors.length > 0) {
         validationErrors.forEach(error => {
-            console.log(document.getElementById(error.field));
             
             document.getElementById(error.field).innerText = error.message;
         });

@@ -91,7 +91,6 @@ const generate = async (req, res) => {
             totalDiscount
         });
     } catch (error) {
-        console.error('Error generating sales report:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
@@ -212,7 +211,6 @@ const pdf = async (req, res) => {
 
         doc.end(); 
     } catch (error) {
-        console.error('Error generating PDF:', error);
         res.status(500).send('An error occurred while generating the PDF.');
     }
 };
@@ -301,7 +299,6 @@ const excelReport = async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        console.error('Error generating Excel report:', error);
         res.status(500).send('An error occurred while generating the Excel report.');
     }
 };

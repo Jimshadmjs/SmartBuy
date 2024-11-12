@@ -127,7 +127,6 @@ const dashboardData =async (req, res) => {
             users
         });
     } catch (error) {
-        console.error('Error fetching dashboard data:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

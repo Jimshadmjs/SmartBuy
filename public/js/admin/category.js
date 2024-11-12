@@ -58,7 +58,6 @@ const updateCategoryStatus = async (categoryId, isListed) => {
 
     try {
         const response = await axios.patch(url, data);
-        console.log('Category status updated:', response.data);
         location.reload();
     } catch (error) {
         console.error('Error updating category status:', error);
@@ -119,10 +118,9 @@ async function clicked() {
         const url = `/admin/category/edit/${categoryId}`;
         await axios.patch(url, { name: categoryName });
         closeEditModal();
-        location.reload(); // Reload the page to see changes
+        location.reload(); 
     } catch (error) {
-        console.error('Error updating category:', error);
-        editErrorMessage.style.display = "block"; // Show an error message
+        editErrorMessage.style.display = "block"; 
         editErrorMessage.innerText = "Failed to update category. Please try again.";
     }
 }

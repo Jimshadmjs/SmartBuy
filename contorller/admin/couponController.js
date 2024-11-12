@@ -25,7 +25,6 @@ const coupon = async (req, res) => {
             totalPages
         });
     } catch (error) {
-        console.error(error);
         res.status(500).send('Internal Server Error');
     }
 }
@@ -91,7 +90,6 @@ const deleteCoupon = async (req,res)=>{
     try {
         
         const coupon = await couponSchema.findByIdAndDelete(couponId)
-        console.log(coupon);
 
         if(!coupon){
             res.status(404).json({message:"coupon not found"})
