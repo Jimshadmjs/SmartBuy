@@ -46,7 +46,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
   clientID: process.env.YOUR_GOOGLE_CLIENT_ID, 
   clientSecret: process.env.YOUR_GOOGLE_CLIENT_SECRET, 
-  callbackURL: 'http://localhost:3000/auth/google/callback' 
+  callbackURL: 'https://smartbuy.myvnc.com/auth/google/callback' 
 }, async (accessToken, refreshToken, profile, done) => {
   let user = await User.findOne({ googleId: profile.id });
 
